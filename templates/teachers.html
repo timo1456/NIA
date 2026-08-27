@@ -1,0 +1,17 @@
+<h2>Teacher List</h2>
+
+<ul>
+    {% for teacher in teachers %}
+        <li>
+            <!-- Click to view profile -->
+            <a href="/teacher/{{ teacher.id }}">
+                {{ teacher.username }}
+            </a>
+
+            <!-- Delete button -->
+            <form action="/delete-teacher/{{ teacher.id }}" method="POST" style="display:inline;">
+                <button type="submit">Delete</button>
+            </form>
+        </li>
+    {% endfor %}
+</ul>

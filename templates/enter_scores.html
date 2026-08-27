@@ -1,0 +1,73 @@
+<h2>Enter Scores - {{ subject }}</h2>
+
+<form method="POST" action="/save-scores">
+
+    <input type="hidden" name="subject" value="{{ subject }}">
+
+    <!-- Student Dropdown -->
+    <label>Select Student</label>
+    <select id="studentSelect" required>
+        <option value="">-- choose student --</option>
+        {% for student in students %}
+            <option value="{{ student.id }}">{{ student.name }}</option>
+        {% endfor %}
+    </select>
+
+    <div id="scoreForm" style="margin-top:20px; display:none;">
+        <input id="ca1" placeholder="CA1">
+        <input id="ca2" placeholder="CA2">
+        <input id="exam" placeholder="Exam">
+
+ <!--       <button type="button" onclick="addStudentScore()">Add Score</button>  -->
+    </div>
+
+    <!-- hidden area to store multiple entries -->
+    <div id="hiddenInputs"></div>
+
+    <button onclick="addStudentScore()"  type="submit">Save All</button>
+</form>
+
+
+
+
+
+
+
+
+
+
+<script>
+let selectedStudent = null;
+
+document.getElementById("studentSelect").addEventListener("change", function () {
+    selectedStudent = this.value;
+
+    if (selectedStudent) {
+        document.getElementById("scoreForm").style.display = "block";
+    } else {
+        document.getElementById("scoreForm").style.display = "none";
+    }
+});
+
+function addStudentScore() {
+    let ca1 = document.getElementById("ca1").value;
+    let ca2 = document.getElementById("ca2").value;
+    let exam = document.getElementById("exam").value;
+
+    if (!selectedStudent) return alert("Select a student first");
+
+    let container = document.getElementById("hiddenInputs");
+
+    container.innerHTML += `
+        <input type="hidden" name="ca1_${selectedStudent}" value="${ca1}">
+        <input type="hidden" name="ca2_${selectedStudent}" value="${ca2}">
+        <input type="hidden" name="exam_${selectedStudent}" value="${exam}">
+    `;
+
+    // reset fields
+    document.getElementById("ca1").value = "";
+    document.getElementById("ca2").value = "";
+    document.getElementById("exam").value = "";
+
+}
+</script>

@@ -1,0 +1,17 @@
+<h2>Select Class & Subject</h2>
+
+<form method="POST">
+    <select name="class_name">
+    	{% for c in classs %}
+            <option>{{ c }}</option>
+        {% endfor %}
+    </select>
+
+    <select name="subject">
+        {% for s in subjects %}
+            <option>{{ s }}</option>
+        {% endfor %}
+    </select>
+
+    <button>Next</button>
+</form>
