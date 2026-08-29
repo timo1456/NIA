@@ -820,6 +820,34 @@ def save_scores():
 
     return redirect("/add-score")
 
+def result_sheet():
+
+    # get class/subject
+    ...
+
+    scores = Score.query.filter_by(
+        subject_id=subject_id
+    ).join(
+        Student
+    ).filter(
+        Student.class_name == class_name
+    ).all()
+
+    student_count = len(scores)
+
+    if student_count > 0:
+        class_average = sum(
+            score.total for score in scores
+        ) / student_count
+    else:
+        class_average = 0
+
+    # render result sheet
+    return render_template(
+        "result_sheet.html",
+        scores=scores,
+        class_average=class_average
+    )
 
 # ==================================================
 # LOGOUT
