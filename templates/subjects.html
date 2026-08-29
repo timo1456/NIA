@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Subjects</title>
+
+</head>
+
+<body>
+
+    <h2>Subject List</h2>
+
+
+    <a href="/add-subject">
+        Add New Subject
+    </a>
+
+
+    <br><br>
+
+
+    {% if subjects %}
+
+        <ul>
+
+            {% for subject in subjects %}
+
+                <li>
+
+                    {{ subject.name }}
+
+
+                    <form
+                        action="/delete-subject/{{ subject.id }}"
+                        method="POST"
+                        style="display:inline;"
+                    >
+
+                        <button type="submit">
+                            Delete
+                        </button>
+
+                    </form>
+
+                </li>
+
+            {% endfor %}
+
+        </ul>
+
+    {% else %}
+
+        <p>
+            No subjects have been added.
+        </p>
+
+    {% endif %}
+
+
+    <br>
+
+
+    <a href="/dashboard">
+        Back to Dashboard
+    </a>
+
+</body>
+
+</html>

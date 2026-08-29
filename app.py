@@ -1,302 +1,840 @@
 from flask import Flask, render_template, request, redirect, session
 from werkzeug.security import generate_password_hash, check_password_hash
+
 from extensions import db
-from models.user import User, Student, Score
+
+from models.user import (
+    User,
+    Student,
+    Subject,
+    TeacherAssignment,
+    Score
+)
+
 import os
 
+
+# ==================================================
+# APP
+# ==================================================
+
 app = Flask(__name__)
+
 app.secret_key = "secret_key_change_later"
 
-# DB
-basedir = os.path.abspath(os.path.dirname(__file__))
-app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///" + os.path.join(basedir, "school.db")
+
+# ==================================================
+# DATABASE
+# ==================================================
+
+basedir = os.path.abspath(
+    os.path.dirname(__file__)
+)
+
+app.config["SQLALCHEMY_DATABASE_URI"] = (
+    "sqlite:///"
+    + os.path.join(basedir, "school.db")
+)
+
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 db.init_app(app)
 
+
+# ==================================================
+# CLASSES
+# ==================================================
+
+CLASSES = [
+    "JSS 1",
+    "JSS 2",
+    "JSS 3",
+    "SSS 1",
+    "SSS 2",
+    "SSS 3"
+]
+
+
+# ==================================================
+# DATABASE INITIALIZATION
+# ==================================================
+
 with app.app_context():
+
     db.create_all()
 
-    admin = User.query.filter_by(username="Admin").first()
+    admin = User.query.filter_by(
+        username="Admin"
+    ).first()
+
     if not admin:
+
         admin = User(
             username="Admin",
-            password=generate_password_hash("administrator"),
+            password=generate_password_hash(
+                "administrator"
+            ),
             role="admin",
             name="System Admin"
         )
+
         db.session.add(admin)
         db.session.commit()
 
 
-# ======================
+# ==================================================
 # HOME
-# ======================
+# ==================================================
+
 @app.route("/")
 def home():
+
     return redirect("/login")
 
 
-# ======================
-# REGISTER (STUDENTS ONLY)
-# ======================
+# ==================================================
+# REGISTER
+# ==================================================
+
 @app.route("/register", methods=["GET", "POST"])
 def register():
+
     if request.method == "POST":
-        username = request.form["username"]
-        password = generate_password_hash(request.form["password"])
 
-        exists = User.query.filter_by(username=username).first()
-        if exists:
-            user_exist = "User exists"
-            return render_template("register.html", user_exist=user_exist)
+        username = request.form["username"].strip()
 
-        user = User(username=username, password=password, role="student")
+        password = generate_password_hash(
+            request.form["password"]
+        )
+
+        existing = User.query.filter_by(
+            username=username
+        ).first()
+
+        if existing:
+
+            return render_template(
+                "register.html",
+                user_exist="User exists"
+            )
+
+        user = User(
+            username=username,
+            password=password,
+            role="student"
+        )
+
         db.session.add(user)
         db.session.commit()
 
         return redirect("/login")
 
-    return render_template("register.html")
+    return render_template(
+        "register.html"
+    )
 
 
-# ======================
-# LOGIN (ADMIN / TEACHER ONLY)
-# ======================
+# ==================================================
+# LOGIN
+# ==================================================
+
 @app.route("/login", methods=["GET", "POST"])
 def login():
+
     if request.method == "POST":
-        username = request.form["username"]
+
+        username = request.form["username"].strip()
         password = request.form["password"]
 
-        user = User.query.filter_by(username=username).first()
+        user = User.query.filter_by(
+            username=username
+        ).first()
 
-        if user and check_password_hash(user.password, password):
+        if user and check_password_hash(
+            user.password,
+            password
+        ):
+
             session["user"] = user.username
             session["role"] = user.role
+            session["user_id"] = user.id
+
             return redirect("/dashboard")
 
-        invalid = "Invalid Login Credentials"
-        return render_template("login.html", invalid=invalid)
+        return render_template(
+            "login.html",
+            invalid="Invalid Login Credentials"
+        )
 
-    return render_template("login.html")
+    return render_template(
+        "login.html"
+    )
 
-# ======================
-# DASHBOARD ROUTER
-# ======================
+
+# ==================================================
+# DASHBOARD
+# ==================================================
+
 @app.route("/dashboard")
 def dashboard():
+
     if "user" not in session:
+
         return redirect("/login")
 
-    role = session["role"]
+    if session["role"] == "admin":
 
-    if role == "admin":
-        return render_template("admin_dashboard.html", user=session["user"])
+        return render_template(
+            "admin_dashboard.html",
+            user=session["user"]
+        )
 
-    elif role == "teacher":
-        return render_template("teacher_dashboard.html", user=session["user"])
+    if session["role"] == "teacher":
+
+        return render_template(
+            "teacher_dashboard.html",
+            user=session["user"]
+        )
 
     return "Student dashboard not implemented yet"
 
 
-# ======================
-# CREATE STUDENT
-# ======================
-@app.route("/create-student", methods=["GET", "POST"])
-def create_student():
+# ==================================================
+# SUBJECT MANAGEMENT
+# ==================================================
+
+@app.route(
+    "/add-subject",
+    methods=["GET", "POST"]
+)
+def add_subject():
+
     if session.get("role") != "admin":
-        return "Unauthorized"
+
+        return "Unauthorized", 403
 
     if request.method == "POST":
-        name = request.form["name"]
-        class_name = request.form["class_name"]
 
-        student = Student(name=name, class_name=class_name)
+        name = request.form["name"].strip()
+
+        if not name:
+
+            return render_template(
+                "add_subject.html",
+                error="Subject name cannot be empty."
+            )
+
+        existing = Subject.query.filter_by(
+            name=name
+        ).first()
+
+        if existing:
+
+            return render_template(
+                "add_subject.html",
+                error="Subject already exists."
+            )
+
+        subject = Subject(
+            name=name
+        )
+
+        db.session.add(subject)
+        db.session.commit()
+
+        return redirect("/subjects")
+
+    return render_template(
+        "add_subject.html"
+    )
+
+
+# ==================================================
+# SUBJECT LIST
+# ==================================================
+
+@app.route("/subjects")
+def subjects():
+
+    if session.get("role") != "admin":
+
+        return "Unauthorized", 403
+
+    all_subjects = Subject.query.order_by(
+        Subject.name
+    ).all()
+
+    return render_template(
+        "subjects.html",
+        subjects=all_subjects
+    )
+
+
+# ==================================================
+# DELETE SUBJECT
+# ==================================================
+
+@app.route(
+    "/delete-subject/<int:subject_id>",
+    methods=["POST"]
+)
+def delete_subject(subject_id):
+
+    if session.get("role") != "admin":
+
+        return "Unauthorized", 403
+
+    subject = Subject.query.get(
+        subject_id
+    )
+
+    if subject:
+
+        TeacherAssignment.query.filter_by(
+            subject_id=subject.id
+        ).delete()
+
+        Score.query.filter_by(
+            subject_id=subject.id
+        ).delete()
+
+        db.session.delete(subject)
+
+        db.session.commit()
+
+    return redirect("/subjects")
+
+
+# ==================================================
+# STUDENT MANAGEMENT
+# ==================================================
+
+@app.route(
+    "/create-student",
+    methods=["GET", "POST"]
+)
+def create_student():
+
+    if session.get("role") != "admin":
+
+        return "Unauthorized", 403
+
+    if request.method == "POST":
+
+        name = request.form["name"].strip()
+
+        class_name = request.form[
+            "class_name"
+        ]
+
+        student = Student(
+            name=name,
+            class_name=class_name
+        )
+
         db.session.add(student)
         db.session.commit()
 
-        return redirect("/dashboard")
+        return redirect("/students")
 
-    return render_template("create_student.html")
-
-
-# ======================
-# CREATE TEACHER
-# ======================
-@app.route("/create-teacher", methods=["GET", "POST"])
-def create_teacher():
-    if session.get("role") != "admin":
-        return "Unauthorized"
-
-    if request.method == "POST":
-        user = User(
-            username=request.form["username"],
-            name=request.form["name"],
-            password=generate_password_hash(request.form["password"]),
-            role="teacher",
-            allowed_subjects=request.form["subjects"],
-            allowed_class=request.form["classs"]
-        )
-
-        db.session.add(user)
-        db.session.commit()
-
-        return redirect("/dashboard")
-
-    return render_template("create_teacher.html")
+    return render_template(
+        "create_student.html",
+        classes=CLASSES
+    )
 
 
-# ======================
-# ADD SCORE (STEP 1)
-# ======================
-@app.route("/add-score", methods=["GET", "POST"])
-def add_score():
-    if session.get("role") != "teacher":
-        return "Unauthorized"
-
-    teacher = User.query.filter_by(username=session["user"]).first()
-    subjects = teacher.allowed_subjects.split(",")
-    classs = teacher.allowed_class.split(",")
-
-    if request.method == "POST":
-        class_name = request.form["class_name"]
-        subject = request.form["subject"]
-
-        students = Student.query.filter_by(class_name=class_name).all()
-
-        return render_template(
-            "enter_scores.html",
-            students=students,
-            subject=subject
-        )
-
-    return render_template("add_score_select.html", subjects=subjects)
-
-
-# ======================
-# SAVE SCORES
-# ======================
-@app.route("/save-scores", methods=["POST"])
-def save_scores():
-    if session.get("role") != "teacher":
-        return "Unauthorized", 403
-
-    subject = request.form.get("subject")
-
-    processed_students = set()
-
-    for key in request.form:
-        if key.startswith("ca1_"):
-            student_id = key.split("_")[1]
-
-            # prevent duplicate processing
-            if student_id in processed_students:
-                continue
-
-            processed_students.add(student_id)
-
-            ca1 = request.form.get(f"ca1_{student_id}")
-            ca2 = request.form.get(f"ca2_{student_id}")
-            exam = request.form.get(f"exam_{student_id}")
-
-            # check if score already exists (optional but recommended)
-            existing = Score.query.filter_by(
-                student_id=student_id,
-                subject=subject
-            ).first()
-
-            if existing:
-                # update instead of duplicate insert
-                existing.ca1 = ca1
-                existing.ca2 = ca2
-                existing.exam = exam
-            else:
-                new_score = Score(
-                    student_id=student_id,
-                    subject=subject,
-                    ca1=ca1,
-                    ca2=ca2,
-                    exam=exam
-                )
-                db.session.add(new_score)
-
-    db.session.commit()
-    return render_template("enter_scores.html")
+# ==================================================
+# STUDENT LIST
+# ==================================================
 
 @app.route("/students")
 def students():
-    if session.get("role") not in ["teacher", "admin"]:
-        return "Unauthorized"
 
-    all_students = Student.query.all()
-    return render_template("students.html", students=all_students)
+    if session.get("role") not in [
+        "admin",
+        "teacher"
+    ]:
 
-@app.route("/delete-student/<int:student_id>", methods=["POST"])
+        return "Unauthorized", 403
+
+    all_students = Student.query.order_by(
+        Student.class_name,
+        Student.name
+    ).all()
+
+    return render_template(
+        "students.html",
+        students=all_students
+    )
+
+
+# ==================================================
+# DELETE STUDENT
+# ==================================================
+
+@app.route(
+    "/delete-student/<int:student_id>",
+    methods=["POST"]
+)
 def delete_student(student_id):
-    if session.get("role") not in ["teacher", "admin"]:
-        return "Unauthorized"
 
-    student = Student.query.get(student_id)
+    if session.get("role") != "admin":
+
+        return "Unauthorized", 403
+
+    student = Student.query.get(
+        student_id
+    )
+
     if student:
+
+        Score.query.filter_by(
+            student_id=student.id
+        ).delete()
+
         db.session.delete(student)
+
         db.session.commit()
 
     return redirect("/students")
 
-@app.route("/student/<int:student_id>")
+
+# ==================================================
+# STUDENT PROFILE
+# ==================================================
+
+@app.route(
+    "/student/<int:student_id>"
+)
 def student_profile(student_id):
-    if session.get("role") not in ["teacher", "admin"]:
-        return "Unauthorized"
 
-    student = Student.query.get_or_404(student_id)
-    scores = Score.query.filter_by(student_id=student_id).all()
+    if session.get("role") not in [
+        "admin",
+        "teacher"
+    ]:
 
-    return render_template("student_profile.html", student=student, scores=scores)
+        return "Unauthorized", 403
 
-#---------------------------
+    student = Student.query.get_or_404(
+        student_id
+    )
+
+    scores = Score.query.filter_by(
+        student_id=student.id
+    ).all()
+
+    return render_template(
+        "student_profile.html",
+        student=student,
+        scores=scores
+    )
+
+
+# ==================================================
+# CREATE TEACHER
+# ==================================================
+
+@app.route(
+    "/create-teacher",
+    methods=["GET", "POST"]
+)
+def create_teacher():
+
+    if session.get("role") != "admin":
+
+        return "Unauthorized", 403
+
+    subjects = Subject.query.order_by(
+        Subject.name
+    ).all()
+
+    if request.method == "POST":
+
+        name = request.form["name"].strip()
+
+        username = request.form[
+            "username"
+        ].strip()
+
+        password = request.form[
+            "password"
+        ]
+
+        existing = User.query.filter_by(
+            username=username
+        ).first()
+
+        if existing:
+
+            return render_template(
+                "create_teacher.html",
+                subjects=subjects,
+                classes=CLASSES,
+                error="Username already exists."
+            )
+
+        # ------------------------------------------
+        # GET ASSIGNMENTS
+        # ------------------------------------------
+
+        assignment_classes = request.form.getlist(
+            "assignment_class"
+        )
+
+        assignment_subjects = request.form.getlist(
+            "assignment_subject"
+        )
+
+        # ------------------------------------------
+        # CREATE TEACHER
+        # ------------------------------------------
+
+        teacher = User(
+            name=name,
+            username=username,
+            password=generate_password_hash(
+                password
+            ),
+            role="teacher"
+        )
+
+        db.session.add(teacher)
+
+        # Flush gives teacher an ID
+        db.session.flush()
+
+        # ------------------------------------------
+        # CREATE ASSIGNMENTS
+        # ------------------------------------------
+
+        for i in range(
+            len(assignment_classes)
+        ):
+
+            class_name = assignment_classes[i]
+
+            subject_id = int(
+                assignment_subjects[i]
+            )
+
+            # Validate class
+            if class_name not in CLASSES:
+
+                continue
+
+            subject = Subject.query.get(
+                subject_id
+            )
+
+            if not subject:
+
+                continue
+
+            assignment = TeacherAssignment(
+                teacher_id=teacher.id,
+                subject_id=subject.id,
+                class_name=class_name
+            )
+
+            db.session.add(
+                assignment
+            )
+
+        db.session.commit()
+
+        return redirect("/teachers")
+
+    return render_template(
+        "create_teacher.html",
+        subjects=subjects,
+        classes=CLASSES
+    )
+
+
+# ==================================================
+# TEACHER LIST
+# ==================================================
 
 @app.route("/teachers")
 def teachers():
-    if session.get("role") not in ["teacher", "admin"]:
-        return "Unauthorized"
 
-    all_teachers = User.query.filter(User.role != "admin").all()
-    return render_template("teachers.html", teachers=all_teachers)
+    if session.get("role") not in [
+        "admin",
+        "teacher"
+    ]:
+
+        return "Unauthorized", 403
+
+    all_teachers = User.query.filter_by(
+        role="teacher"
+    ).order_by(
+        User.name
+    ).all()
+
+    return render_template(
+        "teachers.html",
+        teachers=all_teachers
+    )
 
 
-@app.route("/delete-teacher/<int:user_id>", methods=["POST"])
+# ==================================================
+# DELETE TEACHER
+# ==================================================
+
+@app.route(
+    "/delete-teacher/<int:user_id>",
+    methods=["POST"]
+)
 def delete_teacher(user_id):
-    if session.get("role") not in ["teacher", "admin"]:
-        return "Unauthorized"
 
-    teacher = User.query.get(user_id)
+    if session.get("role") != "admin":
+
+        return "Unauthorized", 403
+
+    teacher = User.query.filter_by(
+        id=user_id,
+        role="teacher"
+    ).first()
+
     if teacher:
-        db.session.delete(teacher)
+
+        TeacherAssignment.query.filter_by(
+            teacher_id=teacher.id
+        ).delete()
+
+        db.session.delete(
+            teacher
+        )
+
         db.session.commit()
 
     return redirect("/teachers")
 
-@app.route("/teacher/<int:user_id>")
+
+# ==================================================
+# TEACHER PROFILE
+# ==================================================
+
+@app.route(
+    "/teacher/<int:user_id>"
+)
 def teacher_profile(user_id):
-    if session.get("role") not in ["teacher", "admin"]:
-        return "Unauthorized"
 
-    teacher = User.query.get_or_404(user_id)
+    if session.get("role") not in [
+        "admin",
+        "teacher"
+    ]:
 
-    return render_template("teacher_profile.html", teacher=teacher)
-# ======================
+        return "Unauthorized", 403
+
+    teacher = User.query.filter_by(
+        id=user_id,
+        role="teacher"
+    ).first_or_404()
+
+    assignments = TeacherAssignment.query.filter_by(
+        teacher_id=teacher.id
+    ).join(
+        Subject
+    ).order_by(
+        TeacherAssignment.class_name,
+        Subject.name
+    ).all()
+
+    return render_template(
+        "teacher_profile.html",
+        teacher=teacher,
+        assignments=assignments
+    )
+
+
+# ==================================================
+# ADD SCORE
+# ==================================================
+
+@app.route(
+    "/add-score",
+    methods=["GET", "POST"]
+)
+def add_score():
+
+    if session.get("role") != "teacher":
+
+        return "Unauthorized", 403
+
+    teacher = User.query.filter_by(
+        id=session["user_id"],
+        role="teacher"
+    ).first()
+
+    assignments = TeacherAssignment.query.filter_by(
+        teacher_id=teacher.id
+    ).join(
+        Subject
+    ).order_by(
+        TeacherAssignment.class_name,
+        Subject.name
+    ).all()
+
+    if request.method == "POST":
+
+        assignment_id = request.form.get(
+            "assignment_id"
+        )
+
+        assignment = TeacherAssignment.query.filter_by(
+            id=assignment_id,
+            teacher_id=teacher.id
+        ).first()
+
+        if not assignment:
+
+            return "Unauthorized", 403
+
+        students = Student.query.filter_by(
+            class_name=assignment.class_name
+        ).order_by(
+            Student.name
+        ).all()
+
+        return render_template(
+            "enter_scores.html",
+            students=students,
+            subject=assignment.subject,
+            assignment=assignment
+        )
+
+    return render_template(
+        "add_score_select.html",
+        assignments=assignments
+    )
+
+
+# ==================================================
+# SAVE SCORES
+# ==================================================
+
+@app.route(
+    "/save-scores",
+    methods=["POST"]
+)
+def save_scores():
+
+    if session.get("role") != "teacher":
+
+        return "Unauthorized", 403
+
+    teacher = User.query.filter_by(
+        id=session["user_id"],
+        role="teacher"
+    ).first()
+
+    assignment_id = request.form.get(
+        "assignment_id"
+    )
+
+    assignment = TeacherAssignment.query.filter_by(
+        id=assignment_id,
+        teacher_id=teacher.id
+    ).first()
+
+    if not assignment:
+
+        return "Unauthorized", 403
+
+    processed_students = set()
+
+    for key in request.form:
+
+        if not key.startswith("ca1_"):
+
+            continue
+
+        student_id = key.split("_")[1]
+
+        if student_id in processed_students:
+
+            continue
+
+        processed_students.add(
+            student_id
+        )
+
+        student = Student.query.filter_by(
+            id=student_id,
+            class_name=assignment.class_name
+        ).first()
+
+        if not student:
+
+            continue
+
+        ca1 = request.form.get(
+            f"ca1_{student_id}"
+        )
+
+        ca2 = request.form.get(
+            f"ca2_{student_id}"
+        )
+        ca3 = request.form.get(
+            f"ca3_{student_id}"
+        )
+
+
+        exam = request.form.get(
+            f"exam_{student_id}"
+        )
+
+        existing = Score.query.filter_by(
+            student_id=student.id,
+            subject_id=assignment.subject_id
+        ).first()
+
+        if existing:
+
+            existing.ca1 = ca1 or 0
+            existing.ca2 = ca2 or 0
+            existing.ca3 = ca3 or 0
+            existing.exam = exam or 0
+
+        else:
+
+            new_score = Score(
+                student_id=student.id,
+                subject_id=assignment.subject_id,
+                ca1=ca1 or 0,
+                ca2=ca2 or 0,
+                ca3=ca3s or 0,
+                exam=exam or 0
+            )
+
+            db.session.add(
+                new_score
+            )
+
+    db.session.commit()
+
+    return redirect("/add-score")
+
+
+# ==================================================
 # LOGOUT
-# ======================
+# ==================================================
 
 @app.route("/logout")
 def logout():
+
     session.clear()
+
     return redirect("/login")
 
+
+# ==================================================
+# RUN
+# ==================================================
+
 if __name__ == "__main__":
-    app.run(debug=True)
-    
-# Create Student list and Teacher list page
-# Create student and teacher profile page
-# add removal of student and teachers
+
+    app.run(
+        debug=True
+    )

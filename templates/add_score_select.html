@@ -1,17 +1,92 @@
-<h2>Select Class & Subject</h2>
+<!DOCTYPE html>
+<html lang="en">
 
-<form method="POST">
-    <select name="class_name">
-    	{% for c in classs %}
-            <option>{{ c }}</option>
-        {% endfor %}
-    </select>
+<head>
 
-    <select name="subject">
-        {% for s in subjects %}
-            <option>{{ s }}</option>
-        {% endfor %}
-    </select>
+    <meta charset="UTF-8">
 
-    <button>Next</button>
-</form>
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Add Scores</title>
+
+</head>
+
+<body>
+
+    <h2>Add Scores</h2>
+
+
+    <p>
+        Select the class and subject you want to enter scores for.
+    </p>
+
+
+    {% if assignments %}
+
+        <form method="POST">
+
+            <label>
+                Teaching Assignment
+            </label>
+
+            <br>
+
+
+            <select
+                name="assignment_id"
+                required
+            >
+
+                <option value="">
+                    Select Class / Subject
+                </option>
+
+
+                {% for assignment in assignments %}
+
+                    <option
+                        value="{{ assignment.id }}"
+                    >
+
+                        {{ assignment.class_name }}
+                        -
+                        {{ assignment.subject.name }}
+
+                    </option>
+
+                {% endfor %}
+
+            </select>
+
+
+            <br><br>
+
+
+            <button type="submit">
+                Continue
+            </button>
+
+        </form>
+
+    {% else %}
+
+        <p>
+            You have no teaching assignments.
+        </p>
+
+    {% endif %}
+
+
+    <br>
+
+
+    <a href="/dashboard">
+        Back to Dashboard
+    </a>
+
+</body>
+
+</html>

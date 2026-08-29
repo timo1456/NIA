@@ -1,14 +1,85 @@
-<h2>Create Student</h2>
+<!DOCTYPE html>
+<html lang="en">
 
-<form method="POST">
-    <input name="name" placeholder="Name">
-    <select name="class_name">
-        <option>JSS 1</option>
-        <option>JSS 2</option>
-        <option>JSS 3</option>
-        <option>SSS 1</option>
-        <option>SSS 2</option>
-        <option>SSS 3</option>
-    </select>
-    <button>Create</button>
-</form>
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Create Student</title>
+
+</head>
+
+<body>
+
+    <h2>Create Student</h2>
+
+
+    <form method="POST">
+
+        <label>
+            Student Name
+        </label>
+
+        <br>
+
+        <input
+            type="text"
+            name="name"
+            placeholder="Student Name"
+            required
+        >
+
+        <br><br>
+
+
+        <label>
+            Class
+        </label>
+
+        <br>
+
+        <select
+            name="class_name"
+            required
+        >
+
+            <option value="">
+                Select Class
+            </option>
+
+            {% for class_name in classes %}
+
+                <option value="{{ class_name }}">
+                    {{ class_name }}
+                </option>
+
+            {% endfor %}
+
+        </select>
+
+
+        <br><br>
+
+
+        <button type="submit">
+            Create Student
+        </button>
+
+    </form>
+
+
+    <br>
+
+
+    <a href="/dashboard">
+        Back to Dashboard
+    </a>
+
+</body>
+
+</html>

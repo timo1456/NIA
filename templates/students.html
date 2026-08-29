@@ -1,17 +1,81 @@
-<h2>Student List</h2>
+<!DOCTYPE html>
+<html lang="en">
 
-<ul>
-    {% for student in students %}
-        <li>
-            <!-- Click to view profile -->
-            <a href="/student/{{ student.id }}">
-                {{ student.name }}
-            </a>
+<head>
 
-            <!-- Delete button -->
-            <form action="/delete-student/{{ student.id }}" method="POST" style="display:inline;">
-                <button type="submit">Delete</button>
-            </form>
-        </li>
-    {% endfor %}
-</ul>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Students</title>
+
+</head>
+
+<body>
+
+    <h2>Student List</h2>
+
+
+    {% if students %}
+
+        <ul>
+
+            {% for student in students %}
+
+                <li>
+
+                    <a
+                        href="/student/{{ student.id }}"
+                    >
+
+                        {{ student.name }}
+
+                    </a>
+
+                    — {{ student.class_name }}
+
+
+                    {% if session.get("role") == "admin" %}
+
+                        <form
+                            action="/delete-student/{{ student.id }}"
+                            method="POST"
+                            style="display:inline;"
+                        >
+
+                            <button type="submit">
+                                Delete
+                            </button>
+
+                        </form>
+
+                    {% endif %}
+
+                </li>
+
+            {% endfor %}
+
+        </ul>
+
+    {% else %}
+
+        <p>
+            No students have been created.
+        </p>
+
+    {% endif %}
+
+
+    <br>
+
+
+    <a href="/dashboard">
+        Back to Dashboard
+    </a>
+
+</body>
+
+</html>

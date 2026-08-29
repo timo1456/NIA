@@ -1,4 +1,106 @@
-<h2>Teacher Profile</h2>
+<!DOCTYPE html>
+<html lang="en">
 
-<p>Name: {{ teacher.username }}</p>
-<p>ID: {{ teacher.id }}</p>
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Teacher Profile</title>
+
+</head>
+
+<body>
+
+    <h2>Teacher Profile</h2>
+
+
+    <p>
+        <strong>Name:</strong>
+        {{ teacher.name }}
+    </p>
+
+
+    <p>
+        <strong>Username:</strong>
+        {{ teacher.username }}
+    </p>
+
+
+    <p>
+        <strong>ID:</strong>
+        {{ teacher.id }}
+    </p>
+
+
+    <hr>
+
+
+    <h3>Teaching Assignments</h3>
+
+
+    {% if assignments %}
+
+        <table border="1" cellpadding="8">
+
+            <thead>
+
+                <tr>
+
+                    <th>
+                        Class
+                    </th>
+
+                    <th>
+                        Subject
+                    </th>
+
+                </tr>
+
+            </thead>
+
+
+            <tbody>
+
+                {% for assignment in assignments %}
+
+                    <tr>
+
+                        <td>
+                            {{ assignment.class_name }}
+                        </td>
+
+                        <td>
+                            {{ assignment.subject.name }}
+                        </td>
+
+                    </tr>
+
+                {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    {% else %}
+
+        <p>
+            No teaching assignments.
+        </p>
+
+    {% endif %}
+
+
+    <br>
+
+    <a href="/teachers">
+        Back to Teacher List
+    </a>
+
+</body>
+
+</html>

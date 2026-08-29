@@ -1,5 +1,134 @@
-<h2>Student Profile</h2>
+<!DOCTYPE html>
+<html lang="en">
 
-<p>Name: {{ student.name }}</p>
-<p>ID: {{ student.id }}</p>
+<head>
 
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Student Profile</title>
+
+</head>
+
+<body>
+
+    <h2>Student Profile</h2>
+
+
+    <p>
+        <strong>Name:</strong>
+        {{ student.name }}
+    </p>
+
+
+    <p>
+        <strong>Class:</strong>
+        {{ student.class_name }}
+    </p>
+
+
+    <p>
+        <strong>ID:</strong>
+        {{ student.id }}
+    </p>
+
+
+    <hr>
+
+
+    <h3>Scores</h3>
+
+
+    {% if scores %}
+
+        <table
+            border="1"
+            cellpadding="8"
+        >
+
+            <thead>
+
+                <tr>
+
+                    <th>
+                        Subject
+                    </th>
+
+                    <th>
+                        CA 1
+                    </th>
+
+                    <th>
+                        CA 2
+                    </th>
+
+                    <th>
+                        Exam
+                    </th>
+
+                    <th>
+                        Total
+                    </th>
+
+                </tr>
+
+            </thead>
+
+
+            <tbody>
+
+                {% for score in scores %}
+
+                    <tr>
+
+                        <td>
+                            {{ score.subject.name if score.subject else "Deleted Subject" }}
+                        </td>
+
+                        <td>
+                            {{ score.ca1 }}
+                        </td>
+
+                        <td>
+                            {{ score.ca2 }}
+                        </td>
+
+                        <td>
+                            {{ score.exam }}
+                        </td>
+
+                        <td>
+                            {{ score.ca1 + score.ca2 + score.exam }}
+                        </td>
+
+                    </tr>
+
+                {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    {% else %}
+
+        <p>
+            No scores available.
+        </p>
+
+    {% endif %}
+
+
+    <br>
+
+
+    <a href="/students">
+        Back to Students
+    </a>
+
+</body>
+
+</html>

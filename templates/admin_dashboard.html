@@ -1,7 +1,83 @@
-<h1>Admin Dashboard</h1>
+<!DOCTYPE html>
+<html lang="en">
 
-<p>Welcome {{ user }}</p>
+<head>
 
-<a href="/create-student">Create Student</a><br>
-<a href="/create-teacher">Create Teacher</a><br>
-<a href="/logout">Logout</a>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Admin Dashboard</title>
+
+</head>
+
+<body>
+
+    <h1>Admin Dashboard</h1>
+
+    <p>
+        Welcome {{ user }}
+    </p>
+
+
+    <hr>
+
+
+    <h3>Students</h3>
+
+    <a href="/create-student">
+        Create Student
+    </a>
+
+    <br>
+
+    <a href="/students">
+        View Students
+    </a>
+
+
+    <hr>
+
+
+    <h3>Teachers</h3>
+
+    <a href="/create-teacher">
+        Create Teacher
+    </a>
+
+    <br>
+
+    <a href="/teachers">
+        View Teachers
+    </a>
+
+
+    <hr>
+
+
+    <h3>Subjects</h3>
+
+    <a href="/add-subject">
+        Add Subject
+    </a>
+
+    <br>
+
+    <a href="/subjects">
+        View Subjects
+    </a>
+
+
+    <hr>
+
+
+    <a href="/logout">
+        Logout
+    </a>
+
+</body>
+
+</html>

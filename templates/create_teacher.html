@@ -1,12 +1,306 @@
-<h2>Create Teacher</h2>
+<!DOCTYPE html>
+<html lang="en">
 
-<form method="POST">
-    <input name="name" placeholder="Name">
-    <input name="username" placeholder="Username">
-    <input name="password" type="password">
-     
-	<input name="classs" placeholder="Class">
-    <input name="subjects" placeholder="Math,English,Physics">
+<head>
 
-    <button>Create Teacher</button>
-</form>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Create Teacher</title>
+
+</head>
+
+<body>
+
+    <h2>Create Teacher</h2>
+
+    {% if error %}
+
+        <p style="color:red;">
+            {{ error }}
+        </p>
+
+    {% endif %}
+
+
+    <form method="POST">
+
+        <!-- ========================= -->
+        <!-- TEACHER INFORMATION -->
+        <!-- ========================= -->
+
+        <label>
+            Teacher Name
+        </label>
+
+        <br>
+
+        <input
+            type="text"
+            name="name"
+            placeholder="Teacher Name"
+            required
+        >
+
+        <br><br>
+
+
+        <label>
+            Username
+        </label>
+
+        <br>
+
+        <input
+            type="text"
+            name="username"
+            placeholder="Username"
+            required
+        >
+
+        <br><br>
+
+
+        <label>
+            Password
+        </label>
+
+        <br>
+
+        <input
+            type="password"
+            name="password"
+            placeholder="Password"
+            required
+        >
+
+        <br><br>
+
+
+        <hr>
+
+
+        <!-- ========================= -->
+        <!-- ASSIGNMENTS -->
+        <!-- ========================= -->
+
+        <h3>Teaching Assignments</h3>
+
+        <div id="assignments">
+
+
+            <!-- FIRST ASSIGNMENT -->
+
+            <div class="assignment">
+
+                <label>
+                    Class
+                </label>
+
+                <select
+                    name="assignment_class"
+                    required
+                >
+
+                    <option value="">
+                        Select Class
+                    </option>
+
+                    {% for class_name in classes %}
+
+                        <option value="{{ class_name }}">
+                            {{ class_name }}
+                        </option>
+
+                    {% endfor %}
+
+                </select>
+
+
+                <br><br>
+
+
+                <label>
+                    Subject
+                </label>
+
+                <select
+                    name="assignment_subject"
+                    required
+                >
+
+                    <option value="">
+                        Select Subject
+                    </option>
+
+                    {% for subject in subjects %}
+
+                        <option value="{{ subject.id }}">
+                            {{ subject.name }}
+                        </option>
+
+                    {% endfor %}
+
+                </select>
+
+
+                <br><br>
+
+                <button
+                    type="button"
+                    onclick="removeAssignment(this)"
+                >
+                    Remove
+                </button>
+
+                <hr>
+
+            </div>
+
+
+        </div>
+
+
+        <button
+            type="button"
+            onclick="addAssignment()"
+        >
+            + Add Another Assignment
+        </button>
+
+
+        <br><br>
+
+
+        <button type="submit">
+            Create Teacher
+        </button>
+
+    </form>
+
+
+    <br>
+
+    <a href="/dashboard">
+        Back to Dashboard
+    </a>
+
+
+    <!-- ========================= -->
+    <!-- JAVASCRIPT -->
+    <!-- ========================= -->
+
+    <script>
+
+        function addAssignment() {
+
+            const container =
+                document.getElementById(
+                    "assignments"
+                );
+
+            const assignment =
+                document.createElement(
+                    "div"
+                );
+
+            assignment.className =
+                "assignment";
+
+            assignment.innerHTML = `
+
+                <label>
+                    Class
+                </label>
+
+                <select
+                    name="assignment_class"
+                    required
+                >
+
+                    <option value="">
+                        Select Class
+                    </option>
+
+                    {% for class_name in classes %}
+
+                        <option value="{{ class_name }}">
+                            {{ class_name }}
+                        </option>
+
+                    {% endfor %}
+
+                </select>
+
+                <br><br>
+
+                <label>
+                    Subject
+                </label>
+
+                <select
+                    name="assignment_subject"
+                    required
+                >
+
+                    <option value="">
+                        Select Subject
+                    </option>
+
+                    {% for subject in subjects %}
+
+                        <option value="{{ subject.id }}">
+                            {{ subject.name }}
+                        </option>
+
+                    {% endfor %}
+
+                </select>
+
+                <br><br>
+
+                <button
+                    type="button"
+                    onclick="removeAssignment(this)"
+                >
+                    Remove
+                </button>
+
+                <hr>
+
+            `;
+
+            container.appendChild(
+                assignment
+            );
+        }
+
+
+        function removeAssignment(button) {
+
+            const assignments =
+                document.querySelectorAll(
+                    ".assignment"
+                );
+
+            if (assignments.length <= 1) {
+
+                alert(
+                    "At least one assignment is required."
+                );
+
+                return;
+            }
+
+            button.parentElement.remove();
+        }
+
+    </script>
+
+</body>
+
+</html>

@@ -1,73 +1,177 @@
-<h2>Enter Scores - {{ subject }}</h2>
+<!DOCTYPE html>
+<html lang="en">
 
-<form method="POST" action="/save-scores">
+<head>
 
-    <input type="hidden" name="subject" value="{{ subject }}">
+    <meta charset="UTF-8">
 
-    <!-- Student Dropdown -->
-    <label>Select Student</label>
-    <select id="studentSelect" required>
-        <option value="">-- choose student --</option>
-        {% for student in students %}
-            <option value="{{ student.id }}">{{ student.name }}</option>
-        {% endfor %}
-    </select>
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
 
-    <div id="scoreForm" style="margin-top:20px; display:none;">
-        <input id="ca1" placeholder="CA1">
-        <input id="ca2" placeholder="CA2">
-        <input id="exam" placeholder="Exam">
+    <title>Enter Scores</title>
 
- <!--       <button type="button" onclick="addStudentScore()">Add Score</button>  -->
-    </div>
+</head>
 
-    <!-- hidden area to store multiple entries -->
-    <div id="hiddenInputs"></div>
+<body>
 
-    <button onclick="addStudentScore()"  type="submit">Save All</button>
-</form>
+    <h2>Enter Scores</h2>
 
 
+    <p>
+        <strong>Class:</strong>
+        {{ assignment.class_name }}
+    </p>
 
 
+    <p>
+        <strong>Subject:</strong>
+        {{ assignment.subject.name }}
+    </p>
 
 
+    {% if students %}
+
+        <form
+            method="POST"
+            action="/save-scores"
+        >
+
+            <input
+                type="hidden"
+                name="assignment_id"
+                value="{{ assignment.id }}"
+            >
 
 
+            <table
+                border="1"
+                cellpadding="8"
+            >
+
+                <thead>
+
+                    <tr>
+
+                        <th>
+                            Student
+                        </th>
+
+                        <th>
+                            CA 1
+                        </th>
+
+                        <th>
+                            CA 2
+                        </th>
+                        <th>
+                            CA 3
+                        </th>
+                        <th>
+                            Exam
+                        </th>
+
+                    </tr>
+
+                </thead>
 
 
-<script>
-let selectedStudent = null;
+                <tbody>
 
-document.getElementById("studentSelect").addEventListener("change", function () {
-    selectedStudent = this.value;
+                    {% for student in students %}
 
-    if (selectedStudent) {
-        document.getElementById("scoreForm").style.display = "block";
-    } else {
-        document.getElementById("scoreForm").style.display = "none";
-    }
-});
+                        <tr>
 
-function addStudentScore() {
-    let ca1 = document.getElementById("ca1").value;
-    let ca2 = document.getElementById("ca2").value;
-    let exam = document.getElementById("exam").value;
+                            <td>
+                                {{ student.name }}
+                            </td>
 
-    if (!selectedStudent) return alert("Select a student first");
 
-    let container = document.getElementById("hiddenInputs");
+                            <td>
 
-    container.innerHTML += `
-        <input type="hidden" name="ca1_${selectedStudent}" value="${ca1}">
-        <input type="hidden" name="ca2_${selectedStudent}" value="${ca2}">
-        <input type="hidden" name="exam_${selectedStudent}" value="${exam}">
-    `;
+                                <input
+                                    type="number"
+                                    name="ca1_{{ student.id }}"
+                                    min="0"
+                                    max="10"
+                                    value="0"
+                                >
 
-    // reset fields
-    document.getElementById("ca1").value = "";
-    document.getElementById("ca2").value = "";
-    document.getElementById("exam").value = "";
+                            </td>
 
-}
-</script>
+
+                            <td>
+
+                                <input
+                                    type="number"
+                                    name="ca2_{{ student.id }}"
+                                    min="0"
+                                    max="20"
+                                    value="0"
+                                >
+
+                            </td>
+
+                            <td>
+
+                                <input
+                                    type="number"
+                                    name="ca3_{{ student.id }}"
+                                    min="0"
+                                    max="20"
+                                    value="0"
+                                >
+
+                            </td>
+
+
+                            <td>
+
+                                <input
+                                    type="number"
+                                    name="exam_{{ student.id }}"
+                                    min="0"
+                                    max="50"
+                                    value="0"
+                                >
+
+                            </td>
+
+                        </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+
+            <br>
+
+
+            <button type="submit">
+                Save Scores
+            </button>
+
+        </form>
+
+    {% else %}
+
+        <p>
+            There are no students in this class yet.
+        </p>
+
+    {% endif %}
+
+
+    <br>
+
+
+    <a href="/add-score">
+        Back
+    </a>
+
+</body>
+
+</html>

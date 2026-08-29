@@ -1,17 +1,84 @@
-<h2>Teacher List</h2>
+<!DOCTYPE html>
+<html lang="en">
 
-<ul>
-    {% for teacher in teachers %}
-        <li>
-            <!-- Click to view profile -->
-            <a href="/teacher/{{ teacher.id }}">
-                {{ teacher.username }}
-            </a>
+<head>
 
-            <!-- Delete button -->
-            <form action="/delete-teacher/{{ teacher.id }}" method="POST" style="display:inline;">
-                <button type="submit">Delete</button>
-            </form>
-        </li>
-    {% endfor %}
-</ul>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Teachers</title>
+
+</head>
+
+<body>
+
+    <h2>Teacher List</h2>
+
+
+    {% if teachers %}
+
+        <ul>
+
+            {% for teacher in teachers %}
+
+                <li>
+
+                    <a
+                        href="/teacher/{{ teacher.id }}"
+                    >
+
+                        {{ teacher.name }}
+
+                    </a>
+
+                    — {{ teacher.username }}
+
+
+                    <form
+                        action="/delete-teacher/{{ teacher.id }}"
+                        method="POST"
+                        style="display:inline;"
+                    >
+
+                        <button type="submit">
+                            Delete
+                        </button>
+
+                    </form>
+
+                </li>
+
+            {% endfor %}
+
+        </ul>
+
+    {% else %}
+
+        <p>
+            No teachers have been created.
+        </p>
+
+    {% endif %}
+
+
+    <br>
+
+
+    <a href="/create-teacher">
+        Create Teacher
+    </a>
+
+    <br><br>
+
+
+    <a href="/dashboard">
+        Back to Dashboard
+    </a>
+
+</body>
+
+</html>
