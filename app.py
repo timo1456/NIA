@@ -770,20 +770,21 @@ def save_scores():
 
         ca1 = int(request.form.get(
             f"ca1_{student_id}"
-        ))
+        ) or 0)
 
         ca2 = int(request.form.get(
             f"ca2_{student_id}"
-        ))
+        ) or 0)
         ca3 = int(request.form.get(
             f"ca3_{student_id}"
-        ))
+        ) or 0)
 
         exam = int(request.form.get(
             f"exam_{student_id}"
-        ))
+        ) or 0)
 
         total = ca1 + ca2 + ca3 + exam
+
         
 
         existing = Score.query.filter_by(
