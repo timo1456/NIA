@@ -55,6 +55,7 @@ CLASSES = [
 ]
 
 
+
 # ==================================================
 # DATABASE INITIALIZATION
 # ==================================================
@@ -82,9 +83,6 @@ with app.app_context():
         db.session.commit()
 
 
-# ==================================================
-# HOME
-# ==================================================
 
 @app.route("/")
 def home():
@@ -92,9 +90,7 @@ def home():
     return redirect("/login")
 
 
-# ==================================================
-# REGISTER
-# ==================================================
+
 
 @app.route("/register", methods=["GET", "POST"])
 def register():
@@ -134,9 +130,6 @@ def register():
     )
 
 
-# ==================================================
-# LOGIN
-# ==================================================
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
@@ -308,7 +301,10 @@ def delete_subject(subject_id):
 # ==================================================
 # STUDENT MANAGEMENT
 # ==================================================
-
+GENDER = [
+    "Male",
+    "Female"
+]
 @app.route(
     "/create-student",
     methods=["GET", "POST"]
@@ -326,10 +322,12 @@ def create_student():
         class_name = request.form[
             "class_name"
         ]
+        gender = request.form["gender"]
 
         student = Student(
             name=name,
-            class_name=class_name
+            class_name=class_name,
+            gender=gender
         )
 
         db.session.add(student)
@@ -339,7 +337,8 @@ def create_student():
 
     return render_template(
         "create_student.html",
-        classes=CLASSES
+        classes=CLASSES,
+        gen_der=GENDER
     )
 
 
@@ -769,21 +768,23 @@ def save_scores():
 
             continue
 
-        ca1 = request.form.get(
+        ca1 = int(request.form.get(
             f"ca1_{student_id}"
-        )
+        ))
 
-        ca2 = request.form.get(
+        ca2 = int(request.form.get(
             f"ca2_{student_id}"
-        )
-        ca3 = request.form.get(
+        ))
+        ca3 = int(request.form.get(
             f"ca3_{student_id}"
-        )
+        ))
 
-
-        exam = request.form.get(
+        exam = int(request.form.get(
             f"exam_{student_id}"
-        )
+        ))
+
+        total = ca1 + ca2 + ca3 + exam
+        
 
         existing = Score.query.filter_by(
             student_id=student.id,
@@ -796,6 +797,7 @@ def save_scores():
             existing.ca2 = ca2 or 0
             existing.ca3 = ca3 or 0
             existing.exam = exam or 0
+            existing.total = total or 0
 
         else:
 
@@ -804,8 +806,9 @@ def save_scores():
                 subject_id=assignment.subject_id,
                 ca1=ca1 or 0,
                 ca2=ca2 or 0,
-                ca3=ca3s or 0,
-                exam=exam or 0
+                ca3=ca3 or 0,
+                exam=exam or 0,
+                total=total or 0
             )
 
             db.session.add(

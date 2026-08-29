@@ -36,7 +36,7 @@
                     </a>
 
                     — {{ student.class_name }}
-
+                    — {{ student.gender }}
 
                     {% if session.get("role") == "admin" %}
 
@@ -75,7 +75,10 @@
     <a href="/dashboard">
         Back to Dashboard
     </a>
-
+    <br>
+    <a href="/create-student">
+        Add Students
+    </a>
 </body>
 
 </html>

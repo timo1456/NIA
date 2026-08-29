@@ -48,6 +48,12 @@ class Student(db.Model):
         nullable=False
     )
 
+    gender = db.Column(
+            db.String(20),
+            nullable=False
+        )
+    
+
 
 # ======================
 # SUBJECT
@@ -149,6 +155,11 @@ class Score(db.Model):
     )
 
     exam = db.Column(
+        db.Integer,
+        default=0
+    )
+
+    total = db.Column(
         db.Integer,
         default=0
     )

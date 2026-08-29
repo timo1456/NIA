@@ -61,7 +61,31 @@
             {% endfor %}
 
         </select>
+        <br>
+         <label>
+            Gender
+        </label>
 
+        <br>
+
+        <select
+            name="gender"
+           
+        >
+
+            <option value="">
+                Select Gender
+            </option>
+
+            {% for gender in gen_der %}
+
+                <option value="{{ gender }}">
+                    {{ gender }}
+                </option>
+
+            {% endfor %}
+
+        </select>
 
         <br><br>
 
@@ -81,5 +105,10 @@
     </a>
 
 </body>
-
+<style>
+    body {
+        background-color: black;
+        color: beige;
+    }
+</style>
 </html>
