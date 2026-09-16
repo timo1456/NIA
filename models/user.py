@@ -115,6 +115,31 @@ class TeacherAssignment(db.Model):
 
 
 # ======================
+# ACADEMIC PERIOD
+# ======================
+class AcademicPeriod(db.Model):
+    id = db.Column(
+        db.Integer,
+        primary_key=True
+    )
+
+    academic_session = db.Column(
+        db.String(20),
+        nullable=False
+    )
+
+    term = db.Column(
+        db.String(20),
+        nullable=False
+    )
+
+    is_active = db.Column(
+        db.Boolean,
+        default=False
+    )
+
+
+# ======================
 # SCORES
 # ======================
 class Score(db.Model):
@@ -139,6 +164,15 @@ class Score(db.Model):
         )
     )
 
+    academic_period_id = db.Column(
+        db.Integer,
+        db.ForeignKey(
+            "academic_period.id",
+            ondelete="CASCADE"
+        ),
+        nullable=False
+    )
+
     ca1 = db.Column(
         db.Integer,
         default=0
@@ -159,11 +193,6 @@ class Score(db.Model):
         default=0
     )
 
-    total = db.Column(
-        db.Integer,
-        default=0
-    )
-
     student = db.relationship(
         "Student",
         backref=db.backref(
@@ -174,4 +203,8 @@ class Score(db.Model):
 
     subject = db.relationship(
         "Subject"
+    )
+
+    academic_period = db.relationship(
+        "AcademicPeriod"
     )

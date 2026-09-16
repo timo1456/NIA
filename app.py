@@ -8,7 +8,8 @@ from models.user import (
     Student,
     Subject,
     TeacherAssignment,
-    Score
+    Score,
+    AcademicPeriod
 )
 
 import os
@@ -55,6 +56,15 @@ CLASSES = [
 ]
 
 
+# ==================================================
+# GENDER
+# ==================================================
+
+GENDER = [
+    "Male",
+    "Female"
+]
+
 
 # ==================================================
 # DATABASE INITIALIZATION
@@ -83,6 +93,76 @@ with app.app_context():
         db.session.commit()
 
 
+# ==================================================
+# ACADEMIC PERIOD HELPERS
+# ==================================================
+
+def get_active_period():
+
+    return AcademicPeriod.query.filter_by(
+        is_active=True
+    ).first()
+
+
+# ==================================================
+# RESULT CALCULATIONS
+# ==================================================
+
+def calculate_total(score):
+
+    return (
+        (score.ca1 or 0) +
+        (score.ca2 or 0) +
+        (score.ca3 or 0) +
+        (score.exam or 0)
+    )
+
+
+def calculate_grade(total):
+
+    if total >= 70:
+        return "A"
+
+    elif total >= 60:
+        return "B"
+
+    elif total >= 50:
+        return "C"
+
+    elif total >= 45:
+        return "D"
+
+    elif total >= 40:
+        return "E"
+
+    else:
+        return "F"
+
+
+def calculate_remark(total):
+
+    if total >= 70:
+        return "Excellent"
+
+    elif total >= 60:
+        return "Very Good"
+
+    elif total >= 50:
+        return "Good"
+
+    elif total >= 45:
+        return "Fair"
+
+    elif total >= 40:
+        return "Pass"
+
+    else:
+        return "Fail"
+
+
+# ==================================================
+# HOME
+# ==================================================
 
 @app.route("/")
 def home():
@@ -90,7 +170,9 @@ def home():
     return redirect("/login")
 
 
-
+# ==================================================
+# REGISTER
+# ==================================================
 
 @app.route("/register", methods=["GET", "POST"])
 def register():
@@ -130,6 +212,9 @@ def register():
     )
 
 
+# ==================================================
+# LOGIN
+# ==================================================
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
@@ -301,10 +386,7 @@ def delete_subject(subject_id):
 # ==================================================
 # STUDENT MANAGEMENT
 # ==================================================
-GENDER = [
-    "Male",
-    "Female"
-]
+
 @app.route(
     "/create-student",
     methods=["GET", "POST"]
@@ -322,6 +404,7 @@ def create_student():
         class_name = request.form[
             "class_name"
         ]
+
         gender = request.form["gender"]
 
         student = Student(
@@ -499,7 +582,6 @@ def create_teacher():
 
         db.session.add(teacher)
 
-        # Flush gives teacher an ID
         db.session.flush()
 
         # ------------------------------------------
@@ -516,7 +598,6 @@ def create_teacher():
                 assignment_subjects[i]
             )
 
-            # Validate class
             if class_name not in CLASSES:
 
                 continue
@@ -666,6 +747,23 @@ def add_score():
         role="teacher"
     ).first()
 
+    if not teacher:
+
+        return "Unauthorized", 403
+
+    # ------------------------------------------
+    # GET ACTIVE ACADEMIC PERIOD
+    # ------------------------------------------
+
+    active_period = get_active_period()
+
+    if not active_period:
+
+        return (
+            "No active academic period has been set. "
+            "Ask the administrator to set one."
+        )
+
     assignments = TeacherAssignment.query.filter_by(
         teacher_id=teacher.id
     ).join(
@@ -696,16 +794,31 @@ def add_score():
             Student.name
         ).all()
 
+        scores = {}
+
+        for student in students:
+
+            score = Score.query.filter_by(
+                student_id=student.id,
+                subject_id=assignment.subject_id,
+                academic_period_id=active_period.id
+            ).first()
+
+            scores[student.id] = score
+
         return render_template(
             "enter_scores.html",
             students=students,
             subject=assignment.subject,
-            assignment=assignment
+            assignment=assignment,
+            active_period=active_period,
+            scores=scores
         )
 
     return render_template(
         "add_score_select.html",
-        assignments=assignments
+        assignments=assignments,
+        active_period=active_period
     )
 
 
@@ -727,6 +840,23 @@ def save_scores():
         id=session["user_id"],
         role="teacher"
     ).first()
+
+    if not teacher:
+
+        return "Unauthorized", 403
+
+    # ------------------------------------------
+    # GET ACTIVE PERIOD
+    # ------------------------------------------
+
+    active_period = get_active_period()
+
+    if not active_period:
+
+        return (
+            "No active academic period has been set. "
+            "Ask the administrator to set one."
+        )
 
     assignment_id = request.form.get(
         "assignment_id"
@@ -768,48 +898,63 @@ def save_scores():
 
             continue
 
-        ca1 = int(request.form.get(
-            f"ca1_{student_id}"
-        ) or 0)
+        try:
 
-        ca2 = int(request.form.get(
-            f"ca2_{student_id}"
-        ) or 0)
-        ca3 = int(request.form.get(
-            f"ca3_{student_id}"
-        ) or 0)
+            ca1 = int(
+                request.form.get(
+                    f"ca1_{student_id}"
+                ) or 0
+            )
 
-        exam = int(request.form.get(
-            f"exam_{student_id}"
-        ) or 0)
+            ca2 = int(
+                request.form.get(
+                    f"ca2_{student_id}"
+                ) or 0
+            )
 
-        total = ca1 + ca2 + ca3 + exam
+            ca3 = int(
+                request.form.get(
+                    f"ca3_{student_id}"
+                ) or 0
+            )
 
-        
+            exam = int(
+                request.form.get(
+                    f"exam_{student_id}"
+                ) or 0
+            )
+
+        except ValueError:
+
+            continue
+
+        # ------------------------------------------
+        # FIND SCORE FOR THIS PERIOD
+        # ------------------------------------------
 
         existing = Score.query.filter_by(
             student_id=student.id,
-            subject_id=assignment.subject_id
+            subject_id=assignment.subject_id,
+            academic_period_id=active_period.id
         ).first()
 
         if existing:
 
-            existing.ca1 = ca1 or 0
-            existing.ca2 = ca2 or 0
-            existing.ca3 = ca3 or 0
-            existing.exam = exam or 0
-            existing.total = total or 0
+            existing.ca1 = ca1
+            existing.ca2 = ca2
+            existing.ca3 = ca3
+            existing.exam = exam
 
         else:
 
             new_score = Score(
                 student_id=student.id,
                 subject_id=assignment.subject_id,
-                ca1=ca1 or 0,
-                ca2=ca2 or 0,
-                ca3=ca3 or 0,
-                exam=exam or 0,
-                total=total or 0
+                academic_period_id=active_period.id,
+                ca1=ca1,
+                ca2=ca2,
+                ca3=ca3,
+                exam=exam
             )
 
             db.session.add(
@@ -820,34 +965,184 @@ def save_scores():
 
     return redirect("/add-score")
 
+
+# ==================================================
+# RESULT SHEET
+# ==================================================
+
+@app.route(
+    "/result-sheet",
+    methods=["GET", "POST"]
+)
 def result_sheet():
 
-    # get class/subject
-    ...
+    if session.get("role") not in [
+        "admin",
+        "teacher"
+    ]:
 
-    scores = Score.query.filter_by(
-        subject_id=subject_id
-    ).join(
-        Student
-    ).filter(
-        Student.class_name == class_name
+        return "Unauthorized", 403
+
+    active_period = get_active_period()
+
+    if not active_period:
+
+        return (
+            "No active academic period has been set. "
+            "Ask the administrator to set one."
+        )
+
+    subjects = Subject.query.order_by(
+        Subject.name
     ).all()
 
-    student_count = len(scores)
+    class_name = request.values.get(
+        "class_name"
+    )
 
-    if student_count > 0:
-        class_average = sum(
-            score.total for score in scores
-        ) / student_count
-    else:
-        class_average = 0
+    subject_id = request.values.get(
+        "subject_id"
+    )
 
-    # render result sheet
+    scores = []
+
+    class_average = 0
+
+    if class_name and subject_id:
+
+        try:
+
+            subject_id = int(subject_id)
+
+        except ValueError:
+
+            subject_id = None
+
+        if subject_id:
+
+            subject = Subject.query.get(
+                subject_id
+            )
+
+            if subject:
+
+                scores = Score.query.filter_by(
+                    subject_id=subject.id,
+                    academic_period_id=active_period.id
+                ).join(
+                    Student
+                ).filter(
+                    Student.class_name == class_name
+                ).order_by(
+                    Student.name
+                ).all()
+
+                if scores:
+
+                    totals = [
+                        calculate_total(score)
+                        for score in scores
+                    ]
+
+                    class_average = (
+                        sum(totals)
+                        / len(totals)
+                    )
+
     return render_template(
         "result_sheet.html",
         scores=scores,
-        class_average=class_average
+        subjects=subjects,
+        classes=CLASSES,
+        class_name=class_name,
+        subject_id=subject_id,
+        active_period=active_period,
+        class_average=class_average,
+        calculate_total=calculate_total,
+        calculate_grade=calculate_grade,
+        calculate_remark=calculate_remark
     )
+
+
+# ==================================================
+# ACADEMIC PERIOD
+# ==================================================
+
+@app.route(
+    "/academic-period",
+    methods=["GET", "POST"]
+)
+def academic_period():
+
+    if session.get("role") != "admin":
+
+        return "Unauthorized", 403
+
+    if request.method == "POST":
+
+        academic_session = request.form[
+            "academic_session"
+        ].strip()
+
+        term = request.form[
+            "term"
+        ]
+
+        # ------------------------------------------
+        # DEACTIVATE ALL PERIODS
+        # ------------------------------------------
+
+        AcademicPeriod.query.update(
+            {
+                AcademicPeriod.is_active: False
+            }
+        )
+
+        # ------------------------------------------
+        # CHECK IF PERIOD ALREADY EXISTS
+        # ------------------------------------------
+
+        period = AcademicPeriod.query.filter_by(
+            academic_session=academic_session,
+            term=term
+        ).first()
+
+        if period:
+
+            period.is_active = True
+
+        else:
+
+            period = AcademicPeriod(
+                academic_session=academic_session,
+                term=term,
+                is_active=True
+            )
+
+            db.session.add(
+                period
+            )
+
+        db.session.commit()
+
+        return redirect(
+            "/academic-period"
+        )
+
+    active_period = AcademicPeriod.query.filter_by(
+        is_active=True
+    ).first()
+
+    periods = AcademicPeriod.query.order_by(
+        AcademicPeriod.id.desc()
+    ).all()
+
+    return render_template(
+        "academic_period.html",
+        active_period=active_period,
+        periods=periods
+    )
+
 
 # ==================================================
 # LOGOUT
