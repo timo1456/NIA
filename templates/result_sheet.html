@@ -1,295 +1,108 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-
     <meta charset="UTF-8">
-
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Result Sheet</title>
-
 </head>
-
-
 <body>
 
-    <h1>Result Sheet</h1>
+<h1>Result Sheet</h1>
 
+{% if active_period %}
+    <p><strong>Academic Session:</strong> {{ active_period.academic_session }}</p>
+    <p><strong>Term:</strong> {{ active_period.term }}</p>
+{% endif %}
 
-    {% if active_period %}
+<hr>
+
+<form method="GET" action="/result-sheet">
+    <label for="class_name">Class</label><br>
+
+    <select name="class_name" id="class_name" required>
+        <option value="">Select Class</option>
+        {% for class in classes %}
+            <option value="{{ class }}" {% if class_name == class %}selected{% endif %}>
+                {{ class }}
+            </option>
+        {% endfor %}
+    </select>
+
+    <br><br>
+
+    <label for="subject_id">Subject</label><br>
+
+    <select name="subject_id" id="subject_id" required>
+        <option value="">Select Subject</option>
+        {% for subject in subjects %}
+            <option value="{{ subject.id }}" {% if subject_id == subject.id %}selected{% endif %}>
+                {{ subject.name }}
+            </option>
+        {% endfor %}
+    </select>
+
+    <br><br>
+    <button type="submit">View Result</button>
+</form>
+
+<hr>
+
+{% if class_name and subject_id %}
+
+    {% if students %}
+
+        <h2>{{ class_name }}</h2>
 
         <p>
-
-            <strong>
-                Academic Session:
-            </strong>
-
-            {{ active_period.academic_session }}
-
+            <strong>Class Average:</strong>
+            {{ "%.2f"|format(class_average) }}
         </p>
 
+        <table border="1" cellpadding="8">
+            <thead>
+                <tr>
+                    <th>Student</th>
+                    <th>CA 1</th>
+                    <th>CA 2</th>
+                    <th>CA 3</th>
+                    <th>Exam</th>
+                    <th>Total</th>
+                    <th>Grade</th>
+                    <th>Remark</th>
+                </tr>
+            </thead>
 
-        <p>
+            <tbody>
+                {% for student in students %}
 
-            <strong>
-                Term:
-            </strong>
-
-            {{ active_period.term }}
-
-        </p>
-
-    {% endif %}
-
-
-    <hr>
-
-
-    <form method="GET" action="/result-sheet">
-
-
-        <label for="class_name">
-            Class
-        </label>
-
-        <br>
-
-
-        <select
-            name="class_name"
-            id="class_name"
-            required
-        >
-
-            <option value="">
-                Select Class
-            </option>
-
-
-            {% for class in classes %}
-
-                <option
-                    value="{{ class }}"
-                    {% if class_name == class %}
-                        selected
-                    {% endif %}
-                >
-
-                    {{ class }}
-
-                </option>
-
-            {% endfor %}
-
-        </select>
-
-
-        <br><br>
-
-
-        <label for="subject_id">
-            Subject
-        </label>
-
-        <br>
-
-
-        <select
-            name="subject_id"
-            id="subject_id"
-            required
-        >
-
-            <option value="">
-                Select Subject
-            </option>
-
-
-            {% for subject in subjects %}
-
-                <option
-                    value="{{ subject.id }}"
-                    {% if subject_id == subject.id %}
-                        selected
-                    {% endif %}
-                >
-
-                    {{ subject.name }}
-
-                </option>
-
-            {% endfor %}
-
-        </select>
-
-
-        <br><br>
-
-
-        <button type="submit">
-            View Result
-        </button>
-
-
-    </form>
-
-
-    <hr>
-
-
-    {% if class_name and subject_id %}
-
-
-        {% if scores %}
-
-
-            <h2>
-                {{ class_name }}
-            </h2>
-
-
-            <p>
-                <strong>
-                    Class Average:
-                </strong>
-
-                {{ "%.2f"|format(class_average) }}
-            </p>
-
-
-            <table
-                border="1"
-                cellpadding="8"
-            >
-
-                <thead>
+                    {% set score = scores.get(student.id) %}
+                    {% set total = calculate_total(score) %}
 
                     <tr>
-
-                        <th>
-                            Student
-                        </th>
-
-                        <th>
-                            CA 1
-                        </th>
-
-                        <th>
-                            CA 2
-                        </th>
-
-                        <th>
-                            CA 3
-                        </th>
-
-                        <th>
-                            Exam
-                        </th>
-
-                        <th>
-                            Total
-                        </th>
-
-                        <th>
-                            Grade
-                        </th>
-
-                        <th>
-                            Remark
-                        </th>
-
+                        <td>{{ student.name }}</td>
+                        <td>{{ score.ca1 if score else 0 }}</td>
+                        <td>{{ score.ca2 if score else 0 }}</td>
+                        <td>{{ score.ca3 if score else 0 }}</td>
+                        <td>{{ score.exam if score else 0 }}</td>
+                        <td>{{ total }}</td>
+                        <td>{{ calculate_grade(total) }}</td>
+                        <td>{{ calculate_remark(total) }}</td>
                     </tr>
 
-                </thead>
+                {% endfor %}
+            </tbody>
+        </table>
 
+    {% else %}
 
-                <tbody>
-
-
-                    {% for score in scores %}
-
-                        {% set total = calculate_total(score) %}
-
-
-                        <tr>
-
-
-                            <td>
-                                {{ score.student.name }}
-                            </td>
-
-
-                            <td>
-                                {{ score.ca1 or 0 }}
-                            </td>
-
-
-                            <td>
-                                {{ score.ca2 or 0 }}
-                            </td>
-
-
-                            <td>
-                                {{ score.ca3 or 0 }}
-                            </td>
-
-
-                            <td>
-                                {{ score.exam or 0 }}
-                            </td>
-
-
-                            <td>
-                                {{ total }}
-                            </td>
-
-
-                            <td>
-                                {{ calculate_grade(total) }}
-                            </td>
-
-
-                            <td>
-                                {{ calculate_remark(total) }}
-                            </td>
-
-
-                        </tr>
-
-
-                    {% endfor %}
-
-
-                </tbody>
-
-            </table>
-
-
-        {% else %}
-
-            <p>
-                No scores have been entered for this class,
-                subject, and academic period.
-            </p>
-
-        {% endif %}
-
+        <p>There are no students in this class.</p>
 
     {% endif %}
 
+{% endif %}
 
-    <br>
-
-
-    <a href="/dashboard">
-        Back to Dashboard
-    </a>
-
+<br>
+<a href="/dashboard">Back to Dashboard</a>
 
 </body>
-
 </html>
