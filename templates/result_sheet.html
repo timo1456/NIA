@@ -3,106 +3,248 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Result Sheet</title>
+    <title>Student Result</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 30px;
+            color: #111;
+        }
+
+        .result-container {
+            max-width: 1100px;
+            margin: auto;
+        }
+
+        .school-header {
+            text-align: center;
+            border-bottom: 3px solid #111;
+            padding-bottom: 15px;
+        }
+
+        .school-header h1 {
+            margin: 0;
+        }
+
+        .school-header h2 {
+            margin: 8px 0 0;
+        }
+
+        .student-info {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px 30px;
+            margin: 20px 0;
+        }
+
+        .student-info p {
+            margin: 4px 0;
+        }
+
+        .result-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        .result-table th,
+        .result-table td {
+            border: 1px solid #333;
+            padding: 9px 7px;
+            text-align: center;
+        }
+
+        .result-table th {
+            background: #eee;
+        }
+
+        .result-table th:first-child,
+        .result-table td:first-child {
+            text-align: left;
+        }
+
+        .summary {
+            display: flex;
+            gap: 30px;
+            margin-top: 20px;
+            padding: 15px;
+            border: 1px solid #333;
+        }
+
+        .summary strong {
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        .controls {
+            margin-bottom: 25px;
+            padding: 15px;
+            border: 1px solid #ccc;
+        }
+
+        .controls select,
+        .controls button {
+            padding: 8px;
+            margin-top: 6px;
+        }
+
+        .print-button {
+            margin-top: 20px;
+            padding: 9px 16px;
+        }
+
+        @media print {
+            .controls,
+            .print-button,
+            .back-link {
+                display: none;
+            }
+
+            body {
+                margin: 10px;
+            }
+        }
+
+        @media (max-width: 700px) {
+            .student-info {
+                grid-template-columns: 1fr;
+            }
+
+            .result-table {
+                font-size: 12px;
+            }
+
+            .result-table th,
+            .result-table td {
+                padding: 6px 4px;
+            }
+
+            .summary {
+                flex-direction: column;
+                gap: 10px;
+            }
+        }
+    </style>
 </head>
 <body>
 
-<h1>Result Sheet</h1>
+<div class="result-container">
 
-{% if active_period %}
-    <p><strong>Academic Session:</strong> {{ active_period.academic_session }}</p>
-    <p><strong>Term:</strong> {{ active_period.term }}</p>
-{% endif %}
+    <div class="controls">
+        <h2>View Student Result</h2>
 
-<hr>
+        <form method="GET" action="/result-sheet">
 
-<form method="GET" action="/result-sheet">
-    <label for="class_name">Class</label><br>
+            <label for="student_id">Select Student</label><br>
 
-    <select name="class_name" id="class_name" required>
-        <option value="">Select Class</option>
-        {% for class in classes %}
-            <option value="{{ class }}" {% if class_name == class %}selected{% endif %}>
-                {{ class }}
-            </option>
-        {% endfor %}
-    </select>
+            <select name="student_id" id="student_id" required>
+                <option value="">Select Student</option>
 
-    <br><br>
+                {% for item in available_students %}
+                    <option
+                        value="{{ item.id }}"
+                        {% if selected_student_id == item.id %}selected{% endif %}
+                    >
+                        {{ item.name }} — {{ item.class_name }}
+                    </option>
+                {% endfor %}
+            </select>
 
-    <label for="subject_id">Subject</label><br>
+            <br>
+            <button type="submit">View Result</button>
+        </form>
+    </div>
 
-    <select name="subject_id" id="subject_id" required>
-        <option value="">Select Subject</option>
-        {% for subject in subjects %}
-            <option value="{{ subject.id }}" {% if subject_id == subject.id %}selected{% endif %}>
-                {{ subject.name }}
-            </option>
-        {% endfor %}
-    </select>
+    {% if student %}
 
-    <br><br>
-    <button type="submit">View Result</button>
-</form>
+        <div class="school-header">
+            <h1>NEW INNOVATION ACADEMY</h1>
+            <h2>STUDENT TERMINAL RESULT</h2>
+            <p>
+                {{ active_period.term }} —
+                {{ active_period.academic_session }} ACADEMIC SESSION
+            </p>
+        </div>
 
-<hr>
+        <div class="student-info">
+            <p><strong>Student Name:</strong> {{ student.name }}</p>
+            <p><strong>Student ID:</strong> NIA/{{ "%04d"|format(student.id) }}</p>
+            <p><strong>Class:</strong> {{ student.class_name }}</p>
+            <p><strong>Gender:</strong> {{ student.gender }}</p>
+        </div>
 
-{% if class_name and subject_id %}
-
-    {% if students %}
-
-        <h2>{{ class_name }}</h2>
-
-        <p>
-            <strong>Class Average:</strong>
-            {{ "%.2f"|format(class_average) }}
-        </p>
-
-        <table border="1" cellpadding="8">
+        <table class="result-table">
             <thead>
                 <tr>
-                    <th>Student</th>
-                    <th>CA 1</th>
-                    <th>CA 2</th>
-                    <th>CA 3</th>
+                    <th>Subject</th>
+                    <th>CA1</th>
+                    <th>CA2</th>
+                    <th>CA3</th>
                     <th>Exam</th>
                     <th>Total</th>
                     <th>Grade</th>
                     <th>Remark</th>
+                    <th>Class Average</th>
                 </tr>
             </thead>
 
             <tbody>
-                {% for student in students %}
+                {% for subject in subjects %}
 
-                    {% set score = scores.get(student.id) %}
+                    {% set score = scores.get(subject.id) %}
                     {% set total = calculate_total(score) %}
 
                     <tr>
-                        <td>{{ student.name }}</td>
+                        <td>{{ subject.name }}</td>
                         <td>{{ score.ca1 if score else 0 }}</td>
                         <td>{{ score.ca2 if score else 0 }}</td>
                         <td>{{ score.ca3 if score else 0 }}</td>
                         <td>{{ score.exam if score else 0 }}</td>
-                        <td>{{ total }}</td>
+                        <td><strong>{{ total }}</strong></td>
                         <td>{{ calculate_grade(total) }}</td>
                         <td>{{ calculate_remark(total) }}</td>
+                        <td>
+                            {{ "%.2f"|format(class_averages.get(subject.id, 0)) }}
+                        </td>
                     </tr>
 
                 {% endfor %}
             </tbody>
         </table>
 
+        <div class="summary">
+            <div>
+                <strong>Total Marks</strong>
+                {{ overall_total }}
+            </div>
+
+            <div>
+                <strong>Average</strong>
+                {{ "%.2f"|format(overall_average) }}%
+            </div>
+
+            <div>
+                <strong>Subjects</strong>
+                {{ subjects|length }}
+            </div>
+        </div>
+
+        <button class="print-button" onclick="window.print()">
+            Print Result
+        </button>
+
     {% else %}
 
-        <p>There are no students in this class.</p>
+        <p>Select a student above to view their complete result.</p>
 
     {% endif %}
 
-{% endif %}
+    <br><br>
 
-<br>
-<a href="/dashboard">Back to Dashboard</a>
+    <a class="back-link" href="/dashboard">Back to Dashboard</a>
+
+</div>
 
 </body>
 </html>
