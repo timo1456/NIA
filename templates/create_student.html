@@ -1,114 +1,50 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-
     <meta charset="UTF-8">
-
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Create Student</title>
-
 </head>
-
 <body>
 
-    <h2>Create Student</h2>
+<h2>Create Student</h2>
 
+{% if error %}
+    <p style="color:red;">{{ error }}</p>
+{% endif %}
 
-    <form method="POST">
+<form method="POST">
 
-        <label>
-            Student Name
-        </label>
+    <label>Student Name</label><br>
+    <input type="text" name="name" placeholder="Student Name" required>
 
-        <br>
+    <br><br>
 
-        <input
-            type="text"
-            name="name"
-            placeholder="Student Name"
-            required
-        >
+    <label>Class</label><br>
+    <select name="class_name" required>
+        <option value="">Select Class</option>
+        {% for class_name in classes %}
+            <option value="{{ class_name }}">{{ class_name }}</option>
+        {% endfor %}
+    </select>
 
-        <br><br>
+    <br><br>
 
+    <label>Gender</label><br>
+    <select name="gender" required>
+        <option value="">Select Gender</option>
+        {% for gender in gen_der %}
+            <option value="{{ gender }}">{{ gender }}</option>
+        {% endfor %}
+    </select>
 
-        <label>
-            Class
-        </label>
+    <br><br>
 
-        <br>
+    <button type="submit">Create Student</button>
+</form>
 
-        <select
-            name="class_name"
-            required
-        >
-
-            <option value="">
-                Select Class
-            </option>
-
-            {% for class_name in classes %}
-
-                <option value="{{ class_name }}">
-                    {{ class_name }}
-                </option>
-
-            {% endfor %}
-
-        </select>
-        <br>
-         <label>
-            Gender
-        </label>
-
-        <br>
-
-        <select
-            name="gender"
-           
-        >
-
-            <option value="">
-                Select Gender
-            </option>
-
-            {% for gender in gen_der %}
-
-                <option value="{{ gender }}">
-                    {{ gender }}
-                </option>
-
-            {% endfor %}
-
-        </select>
-
-        <br><br>
-
-
-        <button type="submit">
-            Create Student
-        </button>
-
-    </form>
-
-
-    <br>
-
-
-    <a href="/dashboard">
-        Back to Dashboard
-    </a>
+<br>
+<a href="/dashboard">Back to Dashboard</a>
 
 </body>
-<style>
-    body {
-        background-color: black;
-        color: beige;
-    }
-</style>
 </html>
