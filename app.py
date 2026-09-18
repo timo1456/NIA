@@ -941,7 +941,6 @@ def result_sheet():
     active_period = get_active_period()
 
     if not active_period:
-
         return (
             "No active academic period has been set. "
             "Ask the administrator to set one."
@@ -949,7 +948,10 @@ def result_sheet():
 
     role = session.get("role")
 
-    subjects_query = Subject.query
+    students_query = Student.query.order_by(
+        Student.class_name,
+        Student.name
+    )
 
     if role == "teacher":
 
@@ -961,106 +963,123 @@ def result_sheet():
         if not teacher:
             return "Unauthorized", 403
 
-        subjects_query = subjects_query.join(
-            TeacherAssignment
-        ).filter(
-            TeacherAssignment.teacher_id == teacher.id
-        ).distinct()
+        assigned_classes = [
+            assignment.class_name
+            for assignment in TeacherAssignment.query.filter_by(
+                teacher_id=teacher.id
+            ).all()
+        ]
 
-    subjects = subjects_query.order_by(
-        Subject.name
-    ).all()
+        students_query = students_query.filter(
+            Student.class_name.in_(assigned_classes)
+        )
 
-    class_name = request.values.get(
-        "class_name",
-        ""
-    ).strip()
+    available_students = students_query.all()
 
-    subject_id = request.values.get(
-        "subject_id",
+    student_id = request.values.get(
+        "student_id",
         ""
     )
 
-    selected_subject_id = None
+    selected_student_id = None
 
-    if subject_id:
-
+    if student_id:
         try:
-            selected_subject_id = int(subject_id)
+            selected_student_id = int(student_id)
         except ValueError:
-            selected_subject_id = None
+            selected_student_id = None
 
-    students = []
+    student = None
+    subjects = []
     scores = {}
-    class_average = 0
+    class_averages = {}
+    overall_total = 0
+    overall_average = 0
 
-    if class_name and selected_subject_id:
+    if selected_student_id:
 
-        if class_name not in CLASSES:
-            return "Invalid class", 400
-
-        subject = db.session.get(
-            Subject,
-            selected_subject_id
+        student = db.session.get(
+            Student,
+            selected_student_id
         )
 
-        if not subject:
-            return "Subject not found", 404
+        if not student:
+            return "Student not found", 404
 
         if role == "teacher":
 
             allowed = TeacherAssignment.query.filter_by(
                 teacher_id=session.get("user_id"),
-                subject_id=subject.id,
-                class_name=class_name
+                class_name=student.class_name
             ).first()
 
             if not allowed:
                 return "Unauthorized", 403
 
-        students = Student.query.filter_by(
-            class_name=class_name
-        ).order_by(
-            Student.name
+        subjects = Subject.query.order_by(
+            Subject.name
         ).all()
 
         score_list = Score.query.filter_by(
-            subject_id=subject.id,
+            student_id=student.id,
             academic_period_id=active_period.id
-        ).join(
-            Student
-        ).filter(
-            Student.class_name == class_name
         ).all()
 
         scores = {
-            score.student_id: score
+            score.subject_id: score
             for score in score_list
         }
 
-        if students:
+        class_students = Student.query.filter_by(
+            class_name=student.class_name
+        ).all()
+
+        for subject in subjects:
+
+            subject_scores = Score.query.filter_by(
+                subject_id=subject.id,
+                academic_period_id=active_period.id
+            ).join(
+                Student
+            ).filter(
+                Student.class_name == student.class_name
+            ).all()
 
             totals = [
-                calculate_total(scores[student.id])
-                if student.id in scores
-                else 0
-                for student in students
+                calculate_total(score)
+                for score in subject_scores
             ]
 
-            class_average = (
+            class_averages[subject.id] = (
                 sum(totals) / len(totals)
+                if totals
+                else 0
             )
+
+        overall_total = sum(
+            calculate_total(score)
+            for score in scores.values()
+        )
+
+        subjects_with_scores = len(scores)
+
+        overall_average = (
+            overall_total / subjects_with_scores
+            if subjects_with_scores
+            else 0
+        )
 
     return render_template(
         "result_sheet.html",
-        scores=scores,
-        students=students,
+        available_students=available_students,
+        selected_student_id=selected_student_id,
+        student=student,
         subjects=subjects,
-        classes=CLASSES,
-        class_name=class_name,
-        subject_id=selected_subject_id,
+        scores=scores,
+        class_averages=class_averages,
         active_period=active_period,
-        class_average=class_average,
+        overall_total=overall_total,
+        overall_average=overall_average,
         calculate_total=calculate_total,
         calculate_grade=calculate_grade,
         calculate_remark=calculate_remark
