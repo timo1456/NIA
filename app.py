@@ -2,7 +2,6 @@ from flask import Flask, render_template, request, redirect, session
 from werkzeug.security import generate_password_hash, check_password_hash
 
 from extensions import db
-
 from models.user import (
     User,
     Student,
@@ -15,18 +14,13 @@ from models.user import (
 import os
 
 
-# ==================================================
-# APP
-# ==================================================
-
 app = Flask(__name__)
 
-app.secret_key = "secret_key_change_later"
+app.secret_key = os.environ.get(
+    "SECRET_KEY",
+    "dev-only-secret-key-change-me"
+)
 
-
-# ==================================================
-# DATABASE
-# ==================================================
 
 basedir = os.path.abspath(
     os.path.dirname(__file__)
@@ -42,10 +36,6 @@ app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 db.init_app(app)
 
 
-# ==================================================
-# CLASSES
-# ==================================================
-
 CLASSES = [
     "JSS 1",
     "JSS 2",
@@ -55,20 +45,18 @@ CLASSES = [
     "SSS 3"
 ]
 
-
-# ==================================================
-# GENDER
-# ==================================================
-
 GENDER = [
     "Male",
     "Female"
 ]
 
+SCORE_LIMITS = {
+    "ca1": 10,
+    "ca2": 20,
+    "ca3": 20,
+    "exam": 50
+}
 
-# ==================================================
-# DATABASE INITIALIZATION
-# ==================================================
 
 with app.app_context():
 
@@ -93,10 +81,6 @@ with app.app_context():
         db.session.commit()
 
 
-# ==================================================
-# ACADEMIC PERIOD HELPERS
-# ==================================================
-
 def get_active_period():
 
     return AcademicPeriod.query.filter_by(
@@ -104,11 +88,31 @@ def get_active_period():
     ).first()
 
 
-# ==================================================
-# RESULT CALCULATIONS
-# ==================================================
+def get_valid_score(form, field, student_id):
+
+    raw_value = form.get(
+        f"{field}_{student_id}",
+        "0"
+    ).strip()
+
+    if raw_value == "":
+        raw_value = "0"
+
+    try:
+        value = int(raw_value)
+    except ValueError:
+        return None
+
+    if value < 0 or value > SCORE_LIMITS[field]:
+        return None
+
+    return value
+
 
 def calculate_total(score):
+
+    if not score:
+        return 0
 
     return (
         (score.ca1 or 0) +
@@ -122,68 +126,60 @@ def calculate_grade(total):
 
     if total >= 70:
         return "A"
-
     elif total >= 60:
         return "B"
-
     elif total >= 50:
         return "C"
-
     elif total >= 45:
         return "D"
-
     elif total >= 40:
         return "E"
 
-    else:
-        return "F"
+    return "F"
 
 
 def calculate_remark(total):
 
     if total >= 70:
         return "Excellent"
-
     elif total >= 60:
         return "Very Good"
-
     elif total >= 50:
         return "Good"
-
     elif total >= 45:
         return "Fair"
-
     elif total >= 40:
         return "Pass"
 
-    else:
-        return "Fail"
+    return "Fail"
 
-
-# ==================================================
-# HOME
-# ==================================================
 
 @app.route("/")
 def home():
-
     return redirect("/login")
 
-
-# ==================================================
-# REGISTER
-# ==================================================
 
 @app.route("/register", methods=["GET", "POST"])
 def register():
 
     if request.method == "POST":
 
-        username = request.form["username"].strip()
+        username = request.form.get(
+            "username",
+            ""
+        ).strip()
 
-        password = generate_password_hash(
-            request.form["password"]
+        password = request.form.get(
+            "password",
+            ""
         )
+
+        if not username or not password:
+
+            return render_template(
+                "register.html",
+                user_exist="Username and password are required."
+            )
 
         existing = User.query.filter_by(
             username=username
@@ -198,7 +194,7 @@ def register():
 
         user = User(
             username=username,
-            password=password,
+            password=generate_password_hash(password),
             role="student"
         )
 
@@ -207,22 +203,23 @@ def register():
 
         return redirect("/login")
 
-    return render_template(
-        "register.html"
-    )
+    return render_template("register.html")
 
-
-# ==================================================
-# LOGIN
-# ==================================================
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
 
     if request.method == "POST":
 
-        username = request.form["username"].strip()
-        password = request.form["password"]
+        username = request.form.get(
+            "username",
+            ""
+        ).strip()
+
+        password = request.form.get(
+            "password",
+            ""
+        )
 
         user = User.query.filter_by(
             username=username
@@ -233,6 +230,7 @@ def login():
             password
         ):
 
+            session.clear()
             session["user"] = user.username
             session["role"] = user.role
             session["user_id"] = user.id
@@ -244,20 +242,13 @@ def login():
             invalid="Invalid Login Credentials"
         )
 
-    return render_template(
-        "login.html"
-    )
+    return render_template("login.html")
 
-
-# ==================================================
-# DASHBOARD
-# ==================================================
 
 @app.route("/dashboard")
 def dashboard():
 
     if "user" not in session:
-
         return redirect("/login")
 
     if session["role"] == "admin":
@@ -277,23 +268,18 @@ def dashboard():
     return "Student dashboard not implemented yet"
 
 
-# ==================================================
-# SUBJECT MANAGEMENT
-# ==================================================
-
-@app.route(
-    "/add-subject",
-    methods=["GET", "POST"]
-)
+@app.route("/add-subject", methods=["GET", "POST"])
 def add_subject():
 
     if session.get("role") != "admin":
-
         return "Unauthorized", 403
 
     if request.method == "POST":
 
-        name = request.form["name"].strip()
+        name = request.form.get(
+            "name",
+            ""
+        ).strip()
 
         if not name:
 
@@ -313,29 +299,20 @@ def add_subject():
                 error="Subject already exists."
             )
 
-        subject = Subject(
-            name=name
-        )
+        subject = Subject(name=name)
 
         db.session.add(subject)
         db.session.commit()
 
         return redirect("/subjects")
 
-    return render_template(
-        "add_subject.html"
-    )
+    return render_template("add_subject.html")
 
-
-# ==================================================
-# SUBJECT LIST
-# ==================================================
 
 @app.route("/subjects")
 def subjects():
 
     if session.get("role") != "admin":
-
         return "Unauthorized", 403
 
     all_subjects = Subject.query.order_by(
@@ -348,21 +325,14 @@ def subjects():
     )
 
 
-# ==================================================
-# DELETE SUBJECT
-# ==================================================
-
-@app.route(
-    "/delete-subject/<int:subject_id>",
-    methods=["POST"]
-)
+@app.route("/delete-subject/<int:subject_id>", methods=["POST"])
 def delete_subject(subject_id):
 
     if session.get("role") != "admin":
-
         return "Unauthorized", 403
 
-    subject = Subject.query.get(
+    subject = db.session.get(
+        Subject,
         subject_id
     )
 
@@ -370,42 +340,67 @@ def delete_subject(subject_id):
 
         TeacherAssignment.query.filter_by(
             subject_id=subject.id
-        ).delete()
+        ).delete(synchronize_session=False)
 
         Score.query.filter_by(
             subject_id=subject.id
-        ).delete()
+        ).delete(synchronize_session=False)
 
         db.session.delete(subject)
-
         db.session.commit()
 
     return redirect("/subjects")
 
 
-# ==================================================
-# STUDENT MANAGEMENT
-# ==================================================
-
-@app.route(
-    "/create-student",
-    methods=["GET", "POST"]
-)
+@app.route("/create-student", methods=["GET", "POST"])
 def create_student():
 
     if session.get("role") != "admin":
-
         return "Unauthorized", 403
 
     if request.method == "POST":
 
-        name = request.form["name"].strip()
+        name = request.form.get(
+            "name",
+            ""
+        ).strip()
 
-        class_name = request.form[
-            "class_name"
-        ]
+        class_name = request.form.get(
+            "class_name",
+            ""
+        )
 
-        gender = request.form["gender"]
+        gender = request.form.get(
+            "gender",
+            ""
+        )
+
+        if not name:
+
+            return render_template(
+                "create_student.html",
+                classes=CLASSES,
+                gen_der=GENDER,
+                error="Student name cannot be empty."
+            )
+
+        if class_name not in CLASSES:
+
+            return render_template(
+                "create_student.html",
+                classes=CLASSES,
+                gen_der=GENDER,
+                error="Please select a valid class."
+            )
+
+        if gender not in GENDER:
+
+            return render_template(
+                "create_student.html",
+                classes=CLASSES,
+                gen_der=GENDER,
+                error="Please select a valid gender."
+            )
 
         student = Student(
             name=name,
@@ -424,10 +419,6 @@ def create_student():
         gen_der=GENDER
     )
 
-
-# ==================================================
-# STUDENT LIST
-# ==================================================
 
 @app.route("/students")
 def students():
@@ -450,21 +441,14 @@ def students():
     )
 
 
-# ==================================================
-# DELETE STUDENT
-# ==================================================
-
-@app.route(
-    "/delete-student/<int:student_id>",
-    methods=["POST"]
-)
+@app.route("/delete-student/<int:student_id>", methods=["POST"])
 def delete_student(student_id):
 
     if session.get("role") != "admin":
-
         return "Unauthorized", 403
 
-    student = Student.query.get(
+    student = db.session.get(
+        Student,
         student_id
     )
 
@@ -472,22 +456,15 @@ def delete_student(student_id):
 
         Score.query.filter_by(
             student_id=student.id
-        ).delete()
+        ).delete(synchronize_session=False)
 
         db.session.delete(student)
-
         db.session.commit()
 
     return redirect("/students")
 
 
-# ==================================================
-# STUDENT PROFILE
-# ==================================================
-
-@app.route(
-    "/student/<int:student_id>"
-)
+@app.route("/student/<int:student_id>")
 def student_profile(student_id):
 
     if session.get("role") not in [
@@ -497,33 +474,41 @@ def student_profile(student_id):
 
         return "Unauthorized", 403
 
-    student = Student.query.get_or_404(
+    student = db.session.get(
+        Student,
         student_id
     )
 
-    scores = Score.query.filter_by(
-        student_id=student.id
-    ).all()
+    if not student:
+        return "Student not found", 404
+
+    active_period = get_active_period()
+
+    scores = []
+
+    if active_period:
+
+        scores = Score.query.filter_by(
+            student_id=student.id,
+            academic_period_id=active_period.id
+        ).join(
+            Subject
+        ).order_by(
+            Subject.name
+        ).all()
 
     return render_template(
         "student_profile.html",
         student=student,
-        scores=scores
+        scores=scores,
+        active_period=active_period
     )
 
 
-# ==================================================
-# CREATE TEACHER
-# ==================================================
-
-@app.route(
-    "/create-teacher",
-    methods=["GET", "POST"]
-)
+@app.route("/create-teacher", methods=["GET", "POST"])
 def create_teacher():
 
     if session.get("role") != "admin":
-
         return "Unauthorized", 403
 
     subjects = Subject.query.order_by(
@@ -532,15 +517,29 @@ def create_teacher():
 
     if request.method == "POST":
 
-        name = request.form["name"].strip()
+        name = request.form.get(
+            "name",
+            ""
+        ).strip()
 
-        username = request.form[
-            "username"
-        ].strip()
+        username = request.form.get(
+            "username",
+            ""
+        ).strip()
 
-        password = request.form[
-            "password"
-        ]
+        password = request.form.get(
+            "password",
+            ""
+        )
+
+        if not name or not username or not password:
+
+            return render_template(
+                "create_teacher.html",
+                subjects=subjects,
+                classes=CLASSES,
+                error="Name, username and password are required."
+            )
 
         existing = User.query.filter_by(
             username=username
@@ -555,10 +554,6 @@ def create_teacher():
                 error="Username already exists."
             )
 
-        # ------------------------------------------
-        # GET ASSIGNMENTS
-        # ------------------------------------------
-
         assignment_classes = request.form.getlist(
             "assignment_class"
         )
@@ -567,57 +562,85 @@ def create_teacher():
             "assignment_subject"
         )
 
-        # ------------------------------------------
-        # CREATE TEACHER
-        # ------------------------------------------
+        if not assignment_classes or not assignment_subjects:
 
-        teacher = User(
-            name=name,
-            username=username,
-            password=generate_password_hash(
-                password
-            ),
-            role="teacher"
-        )
-
-        db.session.add(teacher)
-
-        db.session.flush()
-
-        # ------------------------------------------
-        # CREATE ASSIGNMENTS
-        # ------------------------------------------
-
-        for i in range(
-            len(assignment_classes)
-        ):
-
-            class_name = assignment_classes[i]
-
-            subject_id = int(
-                assignment_subjects[i]
+            return render_template(
+                "create_teacher.html",
+                subjects=subjects,
+                classes=CLASSES,
+                error="At least one teaching assignment is required."
             )
 
-            if class_name not in CLASSES:
+        if len(assignment_classes) != len(assignment_subjects):
 
+            return render_template(
+                "create_teacher.html",
+                subjects=subjects,
+                classes=CLASSES,
+                error="Invalid assignment data."
+            )
+
+        validated_assignments = []
+        seen_assignments = set()
+
+        for class_name, raw_subject_id in zip(
+            assignment_classes,
+            assignment_subjects
+        ):
+
+            if class_name not in CLASSES:
                 continue
 
-            subject = Subject.query.get(
+            try:
+                subject_id = int(raw_subject_id)
+            except (TypeError, ValueError):
+                continue
+
+            subject = db.session.get(
+                Subject,
                 subject_id
             )
 
             if not subject:
-
                 continue
 
-            assignment = TeacherAssignment(
-                teacher_id=teacher.id,
-                subject_id=subject.id,
-                class_name=class_name
+            key = (class_name, subject.id)
+
+            if key in seen_assignments:
+                continue
+
+            seen_assignments.add(key)
+            validated_assignments.append(
+                (class_name, subject.id)
             )
 
+        if not validated_assignments:
+
+            return render_template(
+                "create_teacher.html",
+                subjects=subjects,
+                classes=CLASSES,
+                error="At least one valid teaching assignment is required."
+            )
+
+        teacher = User(
+            name=name,
+            username=username,
+            password=generate_password_hash(password),
+            role="teacher"
+        )
+
+        db.session.add(teacher)
+        db.session.flush()
+
+        for class_name, subject_id in validated_assignments:
+
             db.session.add(
-                assignment
+                TeacherAssignment(
+                    teacher_id=teacher.id,
+                    subject_id=subject_id,
+                    class_name=class_name
+                )
             )
 
         db.session.commit()
@@ -630,10 +653,6 @@ def create_teacher():
         classes=CLASSES
     )
 
-
-# ==================================================
-# TEACHER LIST
-# ==================================================
 
 @app.route("/teachers")
 def teachers():
@@ -657,18 +676,10 @@ def teachers():
     )
 
 
-# ==================================================
-# DELETE TEACHER
-# ==================================================
-
-@app.route(
-    "/delete-teacher/<int:user_id>",
-    methods=["POST"]
-)
+@app.route("/delete-teacher/<int:user_id>", methods=["POST"])
 def delete_teacher(user_id):
 
     if session.get("role") != "admin":
-
         return "Unauthorized", 403
 
     teacher = User.query.filter_by(
@@ -678,26 +689,13 @@ def delete_teacher(user_id):
 
     if teacher:
 
-        TeacherAssignment.query.filter_by(
-            teacher_id=teacher.id
-        ).delete()
-
-        db.session.delete(
-            teacher
-        )
-
+        db.session.delete(teacher)
         db.session.commit()
 
     return redirect("/teachers")
 
 
-# ==================================================
-# TEACHER PROFILE
-# ==================================================
-
-@app.route(
-    "/teacher/<int:user_id>"
-)
+@app.route("/teacher/<int:user_id>")
 def teacher_profile(user_id):
 
     if session.get("role") not in [
@@ -728,32 +726,19 @@ def teacher_profile(user_id):
     )
 
 
-# ==================================================
-# ADD SCORE
-# ==================================================
-
-@app.route(
-    "/add-score",
-    methods=["GET", "POST"]
-)
+@app.route("/add-score", methods=["GET", "POST"])
 def add_score():
 
     if session.get("role") != "teacher":
-
         return "Unauthorized", 403
 
     teacher = User.query.filter_by(
-        id=session["user_id"],
+        id=session.get("user_id"),
         role="teacher"
     ).first()
 
     if not teacher:
-
         return "Unauthorized", 403
-
-    # ------------------------------------------
-    # GET ACTIVE ACADEMIC PERIOD
-    # ------------------------------------------
 
     active_period = get_active_period()
 
@@ -776,8 +761,14 @@ def add_score():
     if request.method == "POST":
 
         assignment_id = request.form.get(
-            "assignment_id"
+            "assignment_id",
+            ""
         )
+
+        try:
+            assignment_id = int(assignment_id)
+        except (TypeError, ValueError):
+            return "Invalid assignment", 400
 
         assignment = TeacherAssignment.query.filter_by(
             id=assignment_id,
@@ -785,7 +776,6 @@ def add_score():
         ).first()
 
         if not assignment:
-
             return "Unauthorized", 403
 
         students = Student.query.filter_by(
@@ -822,32 +812,19 @@ def add_score():
     )
 
 
-# ==================================================
-# SAVE SCORES
-# ==================================================
-
-@app.route(
-    "/save-scores",
-    methods=["POST"]
-)
+@app.route("/save-scores", methods=["POST"])
 def save_scores():
 
     if session.get("role") != "teacher":
-
         return "Unauthorized", 403
 
     teacher = User.query.filter_by(
-        id=session["user_id"],
+        id=session.get("user_id"),
         role="teacher"
     ).first()
 
     if not teacher:
-
         return "Unauthorized", 403
-
-    # ------------------------------------------
-    # GET ACTIVE PERIOD
-    # ------------------------------------------
 
     active_period = get_active_period()
 
@@ -859,8 +836,14 @@ def save_scores():
         )
 
     assignment_id = request.form.get(
-        "assignment_id"
+        "assignment_id",
+        ""
     )
+
+    try:
+        assignment_id = int(assignment_id)
+    except (TypeError, ValueError):
+        return "Invalid assignment", 400
 
     assignment = TeacherAssignment.query.filter_by(
         id=assignment_id,
@@ -868,69 +851,50 @@ def save_scores():
     ).first()
 
     if not assignment:
-
         return "Unauthorized", 403
 
-    processed_students = set()
+    student_ids = set()
 
     for key in request.form:
 
-        if not key.startswith("ca1_"):
+        if key.startswith("ca1_"):
+            student_ids.add(key[4:])
 
+    for student_id in student_ids:
+
+        if not student_id.isdigit():
             continue
-
-        student_id = key.split("_")[1]
-
-        if student_id in processed_students:
-
-            continue
-
-        processed_students.add(
-            student_id
-        )
 
         student = Student.query.filter_by(
-            id=student_id,
+            id=int(student_id),
             class_name=assignment.class_name
         ).first()
 
         if not student:
-
             continue
 
-        try:
+        values = {}
 
-            ca1 = int(
-                request.form.get(
-                    f"ca1_{student_id}"
-                ) or 0
+        for field in SCORE_LIMITS:
+
+            value = get_valid_score(
+                request.form,
+                field,
+                student.id
             )
 
-            ca2 = int(
-                request.form.get(
-                    f"ca2_{student_id}"
-                ) or 0
-            )
+            if value is None:
 
-            ca3 = int(
-                request.form.get(
-                    f"ca3_{student_id}"
-                ) or 0
-            )
+                db.session.rollback()
 
-            exam = int(
-                request.form.get(
-                    f"exam_{student_id}"
-                ) or 0
-            )
+                return (
+                    f"Invalid {field.upper()} score "
+                    f"for {student.name}. "
+                    f"Allowed range: 0-{SCORE_LIMITS[field]}.",
+                    400
+                )
 
-        except ValueError:
-
-            continue
-
-        # ------------------------------------------
-        # FIND SCORE FOR THIS PERIOD
-        # ------------------------------------------
+            values[field] = value
 
         existing = Score.query.filter_by(
             student_id=student.id,
@@ -940,25 +904,23 @@ def save_scores():
 
         if existing:
 
-            existing.ca1 = ca1
-            existing.ca2 = ca2
-            existing.ca3 = ca3
-            existing.exam = exam
+            existing.ca1 = values["ca1"]
+            existing.ca2 = values["ca2"]
+            existing.ca3 = values["ca3"]
+            existing.exam = values["exam"]
 
         else:
 
-            new_score = Score(
-                student_id=student.id,
-                subject_id=assignment.subject_id,
-                academic_period_id=active_period.id,
-                ca1=ca1,
-                ca2=ca2,
-                ca3=ca3,
-                exam=exam
-            )
-
             db.session.add(
-                new_score
+                Score(
+                    student_id=student.id,
+                    subject_id=assignment.subject_id,
+                    academic_period_id=active_period.id,
+                    ca1=values["ca1"],
+                    ca2=values["ca2"],
+                    ca3=values["ca3"],
+                    exam=values["exam"]
+                )
             )
 
     db.session.commit()
@@ -966,14 +928,7 @@ def save_scores():
     return redirect("/add-score")
 
 
-# ==================================================
-# RESULT SHEET
-# ==================================================
-
-@app.route(
-    "/result-sheet",
-    methods=["GET", "POST"]
-)
+@app.route("/result-sheet", methods=["GET", "POST"])
 def result_sheet():
 
     if session.get("role") not in [
@@ -992,70 +947,118 @@ def result_sheet():
             "Ask the administrator to set one."
         )
 
-    subjects = Subject.query.order_by(
+    role = session.get("role")
+
+    subjects_query = Subject.query
+
+    if role == "teacher":
+
+        teacher = User.query.filter_by(
+            id=session.get("user_id"),
+            role="teacher"
+        ).first()
+
+        if not teacher:
+            return "Unauthorized", 403
+
+        subjects_query = subjects_query.join(
+            TeacherAssignment
+        ).filter(
+            TeacherAssignment.teacher_id == teacher.id
+        ).distinct()
+
+    subjects = subjects_query.order_by(
         Subject.name
     ).all()
 
     class_name = request.values.get(
-        "class_name"
-    )
+        "class_name",
+        ""
+    ).strip()
 
     subject_id = request.values.get(
-        "subject_id"
+        "subject_id",
+        ""
     )
 
-    scores = []
+    selected_subject_id = None
 
-    class_average = 0
-
-    if class_name and subject_id:
+    if subject_id:
 
         try:
-
-            subject_id = int(subject_id)
-
+            selected_subject_id = int(subject_id)
         except ValueError:
+            selected_subject_id = None
 
-            subject_id = None
+    students = []
+    scores = {}
+    class_average = 0
 
-        if subject_id:
+    if class_name and selected_subject_id:
 
-            subject = Subject.query.get(
-                subject_id
+        if class_name not in CLASSES:
+            return "Invalid class", 400
+
+        subject = db.session.get(
+            Subject,
+            selected_subject_id
+        )
+
+        if not subject:
+            return "Subject not found", 404
+
+        if role == "teacher":
+
+            allowed = TeacherAssignment.query.filter_by(
+                teacher_id=session.get("user_id"),
+                subject_id=subject.id,
+                class_name=class_name
+            ).first()
+
+            if not allowed:
+                return "Unauthorized", 403
+
+        students = Student.query.filter_by(
+            class_name=class_name
+        ).order_by(
+            Student.name
+        ).all()
+
+        score_list = Score.query.filter_by(
+            subject_id=subject.id,
+            academic_period_id=active_period.id
+        ).join(
+            Student
+        ).filter(
+            Student.class_name == class_name
+        ).all()
+
+        scores = {
+            score.student_id: score
+            for score in score_list
+        }
+
+        if students:
+
+            totals = [
+                calculate_total(scores[student.id])
+                if student.id in scores
+                else 0
+                for student in students
+            ]
+
+            class_average = (
+                sum(totals) / len(totals)
             )
-
-            if subject:
-
-                scores = Score.query.filter_by(
-                    subject_id=subject.id,
-                    academic_period_id=active_period.id
-                ).join(
-                    Student
-                ).filter(
-                    Student.class_name == class_name
-                ).order_by(
-                    Student.name
-                ).all()
-
-                if scores:
-
-                    totals = [
-                        calculate_total(score)
-                        for score in scores
-                    ]
-
-                    class_average = (
-                        sum(totals)
-                        / len(totals)
-                    )
 
     return render_template(
         "result_sheet.html",
         scores=scores,
+        students=students,
         subjects=subjects,
         classes=CLASSES,
         class_name=class_name,
-        subject_id=subject_id,
+        subject_id=selected_subject_id,
         active_period=active_period,
         class_average=class_average,
         calculate_total=calculate_total,
@@ -1064,43 +1067,39 @@ def result_sheet():
     )
 
 
-# ==================================================
-# ACADEMIC PERIOD
-# ==================================================
-
-@app.route(
-    "/academic-period",
-    methods=["GET", "POST"]
-)
+@app.route("/academic-period", methods=["GET", "POST"])
 def academic_period():
 
     if session.get("role") != "admin":
-
         return "Unauthorized", 403
 
     if request.method == "POST":
 
-        academic_session = request.form[
-            "academic_session"
-        ].strip()
+        academic_session = request.form.get(
+            "academic_session",
+            ""
+        ).strip()
 
-        term = request.form[
-            "term"
-        ]
+        term = request.form.get(
+            "term",
+            ""
+        ).strip()
 
-        # ------------------------------------------
-        # DEACTIVATE ALL PERIODS
-        # ------------------------------------------
+        valid_terms = {
+            "First Term",
+            "Second Term",
+            "Third Term"
+        }
+
+        if not academic_session or term not in valid_terms:
+            return "Invalid academic period", 400
 
         AcademicPeriod.query.update(
             {
                 AcademicPeriod.is_active: False
-            }
+            },
+            synchronize_session=False
         )
-
-        # ------------------------------------------
-        # CHECK IF PERIOD ALREADY EXISTS
-        # ------------------------------------------
 
         period = AcademicPeriod.query.filter_by(
             academic_session=academic_session,
@@ -1119,19 +1118,13 @@ def academic_period():
                 is_active=True
             )
 
-            db.session.add(
-                period
-            )
+            db.session.add(period)
 
         db.session.commit()
 
-        return redirect(
-            "/academic-period"
-        )
+        return redirect("/academic-period")
 
-    active_period = AcademicPeriod.query.filter_by(
-        is_active=True
-    ).first()
+    active_period = get_active_period()
 
     periods = AcademicPeriod.query.order_by(
         AcademicPeriod.id.desc()
@@ -1144,10 +1137,6 @@ def academic_period():
     )
 
 
-# ==================================================
-# LOGOUT
-# ==================================================
-
 @app.route("/logout")
 def logout():
 
@@ -1156,12 +1145,5 @@ def logout():
     return redirect("/login")
 
 
-# ==================================================
-# RUN
-# ==================================================
-
 if __name__ == "__main__":
-
-    app.run(
-        debug=True
-    )
+    app.run(debug=True)
