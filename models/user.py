@@ -1,84 +1,28 @@
 from extensions import db
 
 
-# ======================
-# USER
-# ADMIN + TEACHER
-# ======================
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-
-    username = db.Column(
-        db.String(100),
-        unique=True,
-        nullable=False
-    )
-
-    password = db.Column(
-        db.String(200),
-        nullable=False
-    )
-
-    role = db.Column(
-        db.String(20),
-        nullable=False
-    )
-
-    name = db.Column(
-        db.String(100)
-    )
+    username = db.Column(db.String(100), unique=True, nullable=False)
+    password = db.Column(db.String(200), nullable=False)
+    role = db.Column(db.String(20), nullable=False)
+    name = db.Column(db.String(100))
 
 
-# ======================
-# STUDENT
-# ======================
 class Student(db.Model):
-    id = db.Column(
-        db.Integer,
-        primary_key=True
-    )
-
-    name = db.Column(
-        db.String(100),
-        nullable=False
-    )
-
-    class_name = db.Column(
-        db.String(50),
-        nullable=False
-    )
-
-    gender = db.Column(
-            db.String(20),
-            nullable=False
-        )
-    
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    class_name = db.Column(db.String(50), nullable=False)
+    gender = db.Column(db.String(20), nullable=False)
 
 
-# ======================
-# SUBJECT
-# ======================
 class Subject(db.Model):
-    id = db.Column(
-        db.Integer,
-        primary_key=True
-    )
-
-    name = db.Column(
-        db.String(100),
-        unique=True,
-        nullable=False
-    )
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), unique=True, nullable=False)
 
 
-# ======================
-# TEACHER ASSIGNMENT
-# ======================
 class TeacherAssignment(db.Model):
-    id = db.Column(
-        db.Integer,
-        primary_key=True
-    )
+    id = db.Column(db.Integer, primary_key=True)
 
     teacher_id = db.Column(
         db.Integer,
@@ -92,9 +36,15 @@ class TeacherAssignment(db.Model):
         nullable=False
     )
 
-    class_name = db.Column(
-        db.String(50),
-        nullable=False
+    class_name = db.Column(db.String(50), nullable=False)
+
+    __table_args__ = (
+        db.UniqueConstraint(
+            "teacher_id",
+            "subject_id",
+            "class_name",
+            name="uq_teacher_subject_class"
+        ),
     )
 
     teacher = db.relationship(
@@ -114,14 +64,8 @@ class TeacherAssignment(db.Model):
     )
 
 
-# ======================
-# ACADEMIC PERIOD
-# ======================
 class AcademicPeriod(db.Model):
-    id = db.Column(
-        db.Integer,
-        primary_key=True
-    )
+    id = db.Column(db.Integer, primary_key=True)
 
     academic_session = db.Column(
         db.String(20),
@@ -135,62 +79,71 @@ class AcademicPeriod(db.Model):
 
     is_active = db.Column(
         db.Boolean,
-        default=False
+        default=False,
+        nullable=False
+    )
+
+    __table_args__ = (
+        db.UniqueConstraint(
+            "academic_session",
+            "term",
+            name="uq_academic_session_term"
+        ),
     )
 
 
-# ======================
-# SCORES
-# ======================
 class Score(db.Model):
-    id = db.Column(
-        db.Integer,
-        primary_key=True
-    )
+    id = db.Column(db.Integer, primary_key=True)
 
     student_id = db.Column(
         db.Integer,
-        db.ForeignKey(
-            "student.id",
-            ondelete="CASCADE"
-        )
+        db.ForeignKey("student.id", ondelete="CASCADE"),
+        nullable=False
     )
 
     subject_id = db.Column(
         db.Integer,
-        db.ForeignKey(
-            "subject.id",
-            ondelete="SET NULL"
-        )
+        db.ForeignKey("subject.id", ondelete="CASCADE"),
+        nullable=False
     )
 
     academic_period_id = db.Column(
         db.Integer,
-        db.ForeignKey(
-            "academic_period.id",
-            ondelete="CASCADE"
-        ),
+        db.ForeignKey("academic_period.id", ondelete="CASCADE"),
         nullable=False
     )
 
     ca1 = db.Column(
         db.Integer,
-        default=0
+        default=0,
+        nullable=False
     )
 
     ca2 = db.Column(
         db.Integer,
-        default=0
+        default=0,
+        nullable=False
     )
 
     ca3 = db.Column(
         db.Integer,
-        default=0
+        default=0,
+        nullable=False
     )
 
     exam = db.Column(
         db.Integer,
-        default=0
+        default=0,
+        nullable=False
+    )
+
+    __table_args__ = (
+        db.UniqueConstraint(
+            "student_id",
+            "subject_id",
+            "academic_period_id",
+            name="uq_student_subject_period"
+        ),
     )
 
     student = db.relationship(
@@ -201,10 +154,5 @@ class Score(db.Model):
         )
     )
 
-    subject = db.relationship(
-        "Subject"
-    )
-
-    academic_period = db.relationship(
-        "AcademicPeriod"
-    )
+    subject = db.relationship("Subject")
+    academic_period = db.relationship("AcademicPeriod")
