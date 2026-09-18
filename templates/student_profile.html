@@ -1,207 +1,86 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-
     <meta charset="UTF-8">
-
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Student Profile</title>
-
 </head>
-
-
 <body>
 
-    <h2>Student Profile</h2>
+<h2>Student Profile</h2>
 
+<p><strong>Name:</strong> {{ student.name }}</p>
+<p><strong>Class:</strong> {{ student.class_name }}</p>
+<p><strong>ID:</strong> {{ student.id }}</p>
 
+{% if active_period %}
     <p>
-
-        <strong>
-            Name:
-        </strong>
-
-        {{ student.name }}
-
+        <strong>Academic Period:</strong>
+        {{ active_period.academic_session }} - {{ active_period.term }}
     </p>
-
-
-    <p>
-
-        <strong>
-            Class:
-        </strong>
-
-        {{ student.class_name }}
-
-    </p>
-
-
-    <p>
-
-        <strong>
-            ID:
-        </strong>
-
-        {{ student.id }}
-
-    </p>
-
-
-    <hr>
-
-
-    <h3>Scores</h3>
-
-
-    {% if scores %}
-
-
-        <table
-            border="1"
-            cellpadding="8"
-        >
-
-            <thead>
-
-                <tr>
-
-                    <th>
-                        Academic Period
-                    </th>
-
-                    <th>
-                        Subject
-                    </th>
-
-                    <th>
-                        CA 1
-                    </th>
-
-                    <th>
-                        CA 2
-                    </th>
-
-                    <th>
-                        CA 3
-                    </th>
-
-                    <th>
-                        Exam
-                    </th>
-
-                    <th>
-                        Total
-                    </th>
-
-                </tr>
-
-            </thead>
-
-
-            <tbody>
-
-
-                {% for score in scores %}
-
-
-                    <tr>
-
-
-                        <td>
-
-                            {% if score.academic_period %}
-
-                                {{ score.academic_period.academic_session }}
-                                -
-                                {{ score.academic_period.term }}
-
-                            {% else %}
-
-                                Unknown
-
-                            {% endif %}
-
-                        </td>
-
-
-                        <td>
-
-                            {{ score.subject.name
-                            if score.subject
-                            else "Deleted Subject" }}
-
-                        </td>
-
-
-                        <td>
-                            {{ score.ca1 or 0 }}
-                        </td>
-
-
-                        <td>
-                            {{ score.ca2 or 0 }}
-                        </td>
-
-
-                        <td>
-                            {{ score.ca3 or 0 }}
-                        </td>
-
-
-                        <td>
-                            {{ score.exam or 0 }}
-                        </td>
-
-
-                        <td>
-
-                            {{
-                                (score.ca1 or 0)
-                                +
-                                (score.ca2 or 0)
-                                +
-                                (score.ca3 or 0)
-                                +
-                                (score.exam or 0)
-                            }}
-
-                        </td>
-
-
-                    </tr>
-
-
-                {% endfor %}
-
-
-            </tbody>
-
-        </table>
-
-
-    {% else %}
-
-        <p>
-            No scores available.
-        </p>
-
-    {% endif %}
-
-
-    <br>
-
-
-    <a href="/students">
-        Back to Students
-    </a>
-
+{% endif %}
+
+<hr>
+
+<h3>Scores</h3>
+
+{% if scores %}
+
+<table border="1" cellpadding="8">
+    <thead>
+        <tr>
+            <th>Subject</th>
+            <th>CA 1</th>
+            <th>CA 2</th>
+            <th>CA 3</th>
+            <th>Exam</th>
+            <th>Total</th>
+            <th>Grade</th>
+            <th>Remark</th>
+        </tr>
+    </thead>
+
+    <tbody>
+        {% for score in scores %}
+            {% set total =
+                (score.ca1 or 0) +
+                (score.ca2 or 0) +
+                (score.ca3 or 0) +
+                (score.exam or 0)
+            %}
+
+            <tr>
+                <td>{{ score.subject.name }}</td>
+                <td>{{ score.ca1 or 0 }}</td>
+                <td>{{ score.ca2 or 0 }}</td>
+                <td>{{ score.ca3 or 0 }}</td>
+                <td>{{ score.exam or 0 }}</td>
+                <td>{{ total }}</td>
+
+                {% if total >= 70 %}
+                    <td>A</td><td>Excellent</td>
+                {% elif total >= 60 %}
+                    <td>B</td><td>Very Good</td>
+                {% elif total >= 50 %}
+                    <td>C</td><td>Good</td>
+                {% elif total >= 45 %}
+                    <td>D</td><td>Fair</td>
+                {% elif total >= 40 %}
+                    <td>E</td><td>Pass</td>
+                {% else %}
+                    <td>F</td><td>Fail</td>
+                {% endif %}
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{% else %}
+    <p>No scores available for the active academic period.</p>
+{% endif %}
+
+<br>
+<a href="/students">Back to Students</a>
 
 </body>
-
 </html>
