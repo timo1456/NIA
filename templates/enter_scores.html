@@ -14,9 +14,25 @@
 
 </head>
 
+
 <body>
 
     <h2>Enter Scores</h2>
+
+
+    {% if active_period %}
+
+        <p>
+            <strong>Academic Session:</strong>
+            {{ active_period.academic_session }}
+        </p>
+
+        <p>
+            <strong>Term:</strong>
+            {{ active_period.term }}
+        </p>
+
+    {% endif %}
 
 
     <p>
@@ -31,12 +47,16 @@
     </p>
 
 
+    <hr>
+
+
     {% if students %}
 
         <form
             method="POST"
             action="/save-scores"
         >
+
 
             <input
                 type="hidden"
@@ -65,9 +85,11 @@
                         <th>
                             CA 2
                         </th>
+
                         <th>
                             CA 3
                         </th>
+
                         <th>
                             Exam
                         </th>
@@ -79,9 +101,14 @@
 
                 <tbody>
 
+
                     {% for student in students %}
 
+                        {% set score = scores.get(student.id) %}
+
+
                         <tr>
+
 
                             <td>
                                 {{ student.name }}
@@ -95,7 +122,7 @@
                                     name="ca1_{{ student.id }}"
                                     min="0"
                                     max="10"
-                                    value="0"
+                                    value="{{ score.ca1 if score else 0 }}"
                                 >
 
                             </td>
@@ -108,12 +135,12 @@
                                     name="ca2_{{ student.id }}"
                                     min="0"
                                     max="20"
-                                    value="0"
+                                    value="{{ score.ca2 if score else 0 }}"
                                 >
 
                             </td>
 
-                            
+
                             <td>
 
                                 <input
@@ -121,7 +148,7 @@
                                     name="ca3_{{ student.id }}"
                                     min="0"
                                     max="20"
-                                    value="0"
+                                    value="{{ score.ca3 if score else 0 }}"
                                 >
 
                             </td>
@@ -134,14 +161,17 @@
                                     name="exam_{{ student.id }}"
                                     min="0"
                                     max="50"
-                                    value="0"
+                                    value="{{ score.exam if score else 0 }}"
                                 >
 
                             </td>
 
+
                         </tr>
 
+
                     {% endfor %}
+
 
                 </tbody>
 
@@ -155,7 +185,9 @@
                 Save Scores
             </button>
 
+
         </form>
+
 
     {% else %}
 
@@ -172,6 +204,7 @@
     <a href="/add-score">
         Back
     </a>
+
 
 </body>
 

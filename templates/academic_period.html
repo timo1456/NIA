@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Academic Period</title>
+
+</head>
+
+
+<body>
+
+    <h1>Academic Period</h1>
+
+
+    <hr>
+
+
+    <h2>Current Active Period</h2>
+
+
+    {% if active_period %}
+
+        <p>
+
+            <strong>
+                Academic Session:
+            </strong>
+
+            {{ active_period.academic_session }}
+
+        </p>
+
+
+        <p>
+
+            <strong>
+                Term:
+            </strong>
+
+            {{ active_period.term }}
+
+        </p>
+
+
+    {% else %}
+
+        <p>
+            No academic period is currently active.
+        </p>
+
+    {% endif %}
+
+
+    <hr>
+
+
+    <h2>Set Academic Period</h2>
+
+
+    <form method="POST">
+
+
+        <label for="academic_session">
+            Academic Session
+        </label>
+
+        <br>
+
+        <input
+            type="text"
+            id="academic_session"
+            name="academic_session"
+            placeholder="2026/2027"
+            required
+        >
+
+
+        <br><br>
+
+
+        <label for="term">
+            Term
+        </label>
+
+        <br>
+
+
+        <select
+            id="term"
+            name="term"
+            required
+        >
+
+            <option value="">
+                Select Term
+            </option>
+
+            <option value="First Term">
+                First Term
+            </option>
+
+            <option value="Second Term">
+                Second Term
+            </option>
+
+            <option value="Third Term">
+                Third Term
+            </option>
+
+        </select>
+
+
+        <br><br>
+
+
+        <button type="submit">
+            Set Active Period
+        </button>
+
+
+    </form>
+
+
+    <hr>
+
+
+    <h2>Academic Period History</h2>
+
+
+    {% if periods %}
+
+        <table
+            border="1"
+            cellpadding="8"
+        >
+
+            <thead>
+
+                <tr>
+
+                    <th>
+                        Academic Session
+                    </th>
+
+                    <th>
+                        Term
+                    </th>
+
+                    <th>
+                        Status
+                    </th>
+
+                </tr>
+
+            </thead>
+
+
+            <tbody>
+
+
+                {% for period in periods %}
+
+                    <tr>
+
+                        <td>
+                            {{ period.academic_session }}
+                        </td>
+
+                        <td>
+                            {{ period.term }}
+                        </td>
+
+                        <td>
+
+                            {% if period.is_active %}
+
+                                <strong>
+                                    Active
+                                </strong>
+
+                            {% else %}
+
+                                Inactive
+
+                            {% endif %}
+
+                        </td>
+
+                    </tr>
+
+                {% endfor %}
+
+
+            </tbody>
+
+        </table>
+
+
+    {% else %}
+
+        <p>
+            No academic periods have been created yet.
+        </p>
+
+    {% endif %}
+
+
+    <br>
+
+
+    <a href="/dashboard">
+        Back to Dashboard
+    </a>
+
+
+</body>
+
+</html>

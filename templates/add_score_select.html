@@ -14,9 +14,28 @@
 
 </head>
 
+
 <body>
 
     <h2>Add Scores</h2>
+
+
+    {% if active_period %}
+
+        <p>
+            <strong>Academic Session:</strong>
+            {{ active_period.academic_session }}
+        </p>
+
+        <p>
+            <strong>Term:</strong>
+            {{ active_period.term }}
+        </p>
+
+    {% endif %}
+
+
+    <hr>
 
 
     <p>
@@ -27,6 +46,7 @@
     {% if assignments %}
 
         <form method="POST">
+
 
             <label>
                 Teaching Assignment
@@ -69,7 +89,9 @@
                 Continue
             </button>
 
+
         </form>
+
 
     {% else %}
 
@@ -79,7 +101,6 @@
 
     {% endif %}
 
-    
 
     <br>
 
@@ -87,6 +108,7 @@
     <a href="/dashboard">
         Back to Dashboard
     </a>
+
 
 </body>
 

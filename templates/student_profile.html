@@ -14,26 +14,42 @@
 
 </head>
 
+
 <body>
 
     <h2>Student Profile</h2>
 
 
     <p>
-        <strong>Name:</strong>
+
+        <strong>
+            Name:
+        </strong>
+
         {{ student.name }}
+
     </p>
 
 
     <p>
-        <strong>Class:</strong>
+
+        <strong>
+            Class:
+        </strong>
+
         {{ student.class_name }}
+
     </p>
 
 
     <p>
-        <strong>ID:</strong>
+
+        <strong>
+            ID:
+        </strong>
+
         {{ student.id }}
+
     </p>
 
 
@@ -45,6 +61,7 @@
 
     {% if scores %}
 
+
         <table
             border="1"
             cellpadding="8"
@@ -53,6 +70,10 @@
             <thead>
 
                 <tr>
+
+                    <th>
+                        Academic Period
+                    </th>
 
                     <th>
                         Subject
@@ -64,6 +85,10 @@
 
                     <th>
                         CA 2
+                    </th>
+
+                    <th>
+                        CA 3
                     </th>
 
                     <th>
@@ -81,37 +106,84 @@
 
             <tbody>
 
+
                 {% for score in scores %}
+
 
                     <tr>
 
-                        <td>
-                            {{ score.subject.name if score.subject else "Deleted Subject" }}
-                        </td>
 
                         <td>
-                            {{ score.ca1 }}
+
+                            {% if score.academic_period %}
+
+                                {{ score.academic_period.academic_session }}
+                                -
+                                {{ score.academic_period.term }}
+
+                            {% else %}
+
+                                Unknown
+
+                            {% endif %}
+
                         </td>
 
-                        <td>
-                            {{ score.ca2 }}
-                        </td>
 
                         <td>
-                            {{ score.exam }}
+
+                            {{ score.subject.name
+                            if score.subject
+                            else "Deleted Subject" }}
+
                         </td>
 
+
                         <td>
-                            {{ score.ca1 + score.ca2 + score.exam }}
+                            {{ score.ca1 or 0 }}
                         </td>
+
+
+                        <td>
+                            {{ score.ca2 or 0 }}
+                        </td>
+
+
+                        <td>
+                            {{ score.ca3 or 0 }}
+                        </td>
+
+
+                        <td>
+                            {{ score.exam or 0 }}
+                        </td>
+
+
+                        <td>
+
+                            {{
+                                (score.ca1 or 0)
+                                +
+                                (score.ca2 or 0)
+                                +
+                                (score.ca3 or 0)
+                                +
+                                (score.exam or 0)
+                            }}
+
+                        </td>
+
 
                     </tr>
 
+
                 {% endfor %}
+
 
             </tbody>
 
         </table>
+
 
     {% else %}
 
@@ -124,11 +196,11 @@
 
     <br>
 
-    
 
     <a href="/students">
         Back to Students
     </a>
+
 
 </body>
 
