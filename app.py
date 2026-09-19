@@ -1287,13 +1287,11 @@ def behavior_rating():
 
             if existing:
                 existing.rating = rating_value
-                existing.teacher_id = teacher.id
             else:
                 db.session.add(
                     BehavioralRating(
                         student_id=student.id,
                         academic_period_id=active_period.id,
-                        teacher_id=teacher.id,
                         trait=trait,
                         rating=rating_value
                     )
