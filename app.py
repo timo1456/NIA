@@ -992,6 +992,91 @@ def save_scores():
     return redirect("/add-score")
 
 
+@app.route("/marks-sheet", methods=["GET", "POST"])
+def marks_sheet():
+
+    if session.get("role") not in ["admin", "teacher"]:
+        return "Unauthorized", 403
+
+    active_period = get_active_period()
+
+    if not active_period:
+        return (
+            "No active academic period has been set. "
+            "Ask the administrator to set one."
+        )
+
+    role = session.get("role")
+    assignments_query = TeacherAssignment.query.join(
+        Subject
+    ).order_by(
+        TeacherAssignment.class_name,
+        Subject.name
+    )
+
+    if role == "teacher":
+        assignments_query = assignments_query.filter_by(
+            teacher_id=session.get("user_id")
+        )
+
+    assignments = assignments_query.all()
+
+    assignment_id = request.values.get("assignment_id", "")
+    assignment = None
+    students = []
+    scores = {}
+
+    if assignment_id:
+        try:
+            assignment_id = int(assignment_id)
+        except ValueError:
+            assignment_id = None
+
+    if assignment_id:
+        assignment = db.session.get(
+            TeacherAssignment,
+            assignment_id
+        )
+
+        if not assignment:
+            return "Assignment not found", 404
+
+        if role == "teacher" and assignment.teacher_id != session.get("user_id"):
+            return "Unauthorized", 403
+
+        students = Student.query.filter_by(
+            class_name=assignment.class_name
+        ).order_by(
+            Student.name
+        ).all()
+
+        score_list = Score.query.filter_by(
+            subject_id=assignment.subject_id,
+            academic_period_id=active_period.id
+        ).join(
+            Student
+        ).filter(
+            Student.class_name == assignment.class_name
+        ).all()
+
+        scores = {
+            score.student_id: score
+            for score in score_list
+        }
+
+    return render_template(
+        "marks_sheet.html",
+        assignments=assignments,
+        assignment=assignment,
+        students=students,
+        scores=scores,
+        active_period=active_period,
+        calculate_total=calculate_total,
+        calculate_grade=calculate_grade,
+        calculate_remark=calculate_remark
+    )
+
+
 @app.route("/result-sheet", methods=["GET", "POST"])
 def result_sheet():
 
