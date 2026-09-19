@@ -59,6 +59,33 @@ SCORE_LIMITS = {
     "exam": 50
 }
 
+BEHAVIOR_TRAITS = [
+    "Punctuality",
+    "Attendance In Class",
+    "Reliability",
+    "Neatness",
+    "Politeness",
+    "Honesty",
+    "Relationship with Staff",
+    "Relationship with Students",
+    "Self Control",
+    "Spirit of Cooperation",
+    "Sense of Responsibility",
+    "Attentiveness",
+    "Initiative",
+    "Organisational Ability",
+    "Perseverance",
+    "Fluency"
+]
+
+REMOVED_BEHAVIOR_TRAITS = [
+    "Games",
+    "Sports",
+    "Drawing and Painting",
+    "Musical Skills",
+    "Handing of Tools"
+]
+
 
 with app.app_context():
 
@@ -79,6 +106,17 @@ with app.app_context():
             )
         )
         db.session.commit()
+
+    admin = User.query.filter_by(
+        username="Admin"
+    ).first()
+
+    # Remove behavioral traits that are no longer part of the system.
+    BehavioralRating.query.filter(
+        BehavioralRating.trait.in_(REMOVED_BEHAVIOR_TRAITS)
+    ).delete(synchronize_session=False)
+
+    db.session.commit()
 
     admin = User.query.filter_by(
         username="Admin"
@@ -1238,56 +1276,36 @@ def behavior_rating():
             for rating in existing_ratings
         }
 
-    traits = [
-        "Punctuality",
-        "Attendance In Class",
-        "Reliability",
-        "Neatness",
-        "Politeness",
-        "Honesty",
-        "Relationship with Staff",
-        "Relationship with Students",
-        "Self Control",
-        "Spirit of Cooperation",
-        "Sense of Responsibility",
-        "Attentiveness",
-        "Initiative",
-        "Organisational Ability",
-        "Perseverance",
-        "Fluency",
-        "Games",
-        "Sports",
-        "Drawing and Painting",
-        "Musical Skills",
-        "Handing of Tools"
-    ]
+    traits = BEHAVIOR_TRAITS
 
     if request.method == "POST":
         if not student:
             return "Invalid student selection", 400
 
-        submitted_ratings = {}
-
         for trait in traits:
             raw_rating = request.form.get(
                 "rating_" + trait,
                 ""
-            )
+            ).strip()
 
-            if raw_rating not in {"1", "2", "3", "4", "5"}:
-                return (
-                    f"Please select a rating for {trait}.",
-                    400
-                )
-
-            submitted_ratings[trait] = int(raw_rating)
-
-        for trait, rating_value in submitted_ratings.items():
             existing = BehavioralRating.query.filter_by(
                 student_id=student.id,
                 academic_period_id=active_period.id,
                 trait=trait
             ).first()
+
+            if raw_rating == "":
+                if existing:
+                    db.session.delete(existing)
+                continue
+
+            if raw_rating not in {"1", "2", "3", "4", "5"}:
+                return (
+                    f"Invalid rating for {trait}.",
+                    400
+                )
+
+            rating_value = int(raw_rating)
 
             if existing:
                 existing.rating = rating_value
@@ -1423,34 +1441,7 @@ def result_display(student_id):
         for rating in behavior_ratings
     }
 
-    behavior_traits = [
-        "Punctuality",
-        "Attendance In Class",
-        "Reliability",
-        "Neatness",
-        "Politeness",
-        "Honesty",
-        "Relationship with Staff",
-        "Relationship with Students",
-        "Self Control",
-        "Spirit of Cooperation",
-        "Sense of Responsibility",
-        "Attentiveness",
-        "Initiative",
-        "Organisational Ability",
-        "Perseverance",
-        "Fluency",
-        "Games",
-        "Sports",
-        "Drawing and Painting",
-        "Musical Skills",
-        "Handing of Tools"
-    ]
-
-    behavior_complete = all(
-        trait in behavior_ratings
-        for trait in behavior_traits
-    )
+    behavior_traits = BEHAVIOR_TRAITS
 
     return render_template(
         "result_display.html",
