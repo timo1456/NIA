@@ -1421,6 +1421,35 @@ def result_display(student_id):
         for rating in behavior_ratings
     }
 
+    behavior_traits = [
+        "Punctuality",
+        "Attendance In Class",
+        "Reliability",
+        "Neatness",
+        "Politeness",
+        "Honesty",
+        "Relationship with Staff",
+        "Relationship with Students",
+        "Self Control",
+        "Spirit of Cooperation",
+        "Sense of Responsibility",
+        "Attentiveness",
+        "Initiative",
+        "Organisational Ability",
+        "Perseverance",
+        "Fluency",
+        "Games",
+        "Sports",
+        "Drawing and Painting",
+        "Musical Skills",
+        "Handing of Tools"
+    ]
+
+    behavior_complete = all(
+        trait in behavior_ratings
+        for trait in behavior_traits
+    )
+
     return render_template(
         "result_display.html",
         student=student,
@@ -1435,7 +1464,9 @@ def result_display(student_id):
         calculate_grade=calculate_grade,
         calculate_remark=calculate_remark,
         school_section=get_school_section(student.class_name),
-        behavior_ratings=behavior_ratings
+        behavior_ratings=behavior_ratings,
+        behavior_traits=behavior_traits,
+        behavior_complete=behavior_complete
     )
 
 
