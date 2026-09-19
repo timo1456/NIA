@@ -177,27 +177,6 @@
     </table>
 
 
-    <!-- Result Summary -->
-    <div class="summary">
-
-        <div>
-            <strong>Total Marks</strong>
-            {{ overall_total }}
-        </div>
-
-        <div>
-            <strong>Average</strong>
-            {{ "%.2f"|format(overall_average) }}%
-        </div>
-
-        <div>
-            <strong>Subjects</strong>
-            {{ subjects|length }}
-        </div>
-
-    </div>
-
-
     {% if behavior_complete %}
 
         <div style="margin-top: 25px;">
