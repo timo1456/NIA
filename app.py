@@ -1,5 +1,6 @@
 from flask import Flask, render_template, request, redirect, session
 from werkzeug.security import generate_password_hash, check_password_hash
+from sqlalchemy import inspect, text
 
 from extensions import db
 from models.user import (
@@ -64,7 +65,6 @@ with app.app_context():
     db.create_all()
 
     # Add newly introduced AcademicPeriod columns to existing SQLite databases.
-    from sqlalchemy import inspect
     inspector = inspect(db.engine)
     academic_period_columns = {
         column["name"]
@@ -73,7 +73,7 @@ with app.app_context():
 
     if "next_term_begins" not in academic_period_columns:
         db.session.execute(
-            db.text(
+            text(
                 "ALTER TABLE academic_period "
                 "ADD COLUMN next_term_begins DATE"
             )
@@ -558,6 +558,10 @@ def delete_student(student_id):
     if student:
 
         Score.query.filter_by(
+            student_id=student.id
+        ).delete(synchronize_session=False)
+
+        BehavioralRating.query.filter_by(
             student_id=student.id
         ).delete(synchronize_session=False)
 
