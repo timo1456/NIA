@@ -185,6 +185,8 @@
                     <th>Total</th>
                     <th>Grade</th>
                     <th>Remark</th>
+                    <th>Last Term Cum.</th>
+                    <th>Cumulative Average</th>
                     <th>Class Average</th>
                 </tr>
             </thead>
@@ -194,6 +196,7 @@
 
                     {% set score = scores.get(subject.id) %}
                     {% set total = calculate_total(score) %}
+                    {% set cumulative = cumulative_results.get(subject.id) %}
 
                     <tr>
                         <td>{{ subject.name }}</td>
@@ -204,6 +207,16 @@
                         <td><strong>{{ total }}</strong></td>
                         <td>{{ calculate_grade(total) }}</td>
                         <td>{{ calculate_remark(total) }}</td>
+                        <td>
+                            {% if cumulative and cumulative.last_term_cumulative is not none %}
+                                {{ "%.2f"|format(cumulative.last_term_cumulative) }}
+                            {% else %}
+                                —
+                            {% endif %}
+                        </td>
+                        <td>
+                            {{ "%.2f"|format(cumulative.cumulative_average if cumulative else total) }}
+                        </td>
                         <td>
                             {{ "%.2f"|format(class_averages.get(subject.id, 0)) }}
                         </td>
