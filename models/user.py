@@ -83,6 +83,11 @@ class AcademicPeriod(db.Model):
         nullable=False
     )
 
+    next_term_begins = db.Column(
+        db.Date,
+        nullable=True
+    )
+
     __table_args__ = (
         db.UniqueConstraint(
             "academic_session",
@@ -156,3 +161,49 @@ class Score(db.Model):
 
     subject = db.relationship("Subject")
     academic_period = db.relationship("AcademicPeriod")
+
+
+
+class BehavioralRating(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+
+    student_id = db.Column(
+        db.Integer,
+        db.ForeignKey("student.id", ondelete="CASCADE"),
+        nullable=False
+    )
+
+    academic_period_id = db.Column(
+        db.Integer,
+        db.ForeignKey("academic_period.id", ondelete="CASCADE"),
+        nullable=False
+    )
+
+    teacher_id = db.Column(
+        db.Integer,
+        db.ForeignKey("user.id", ondelete="CASCADE"),
+        nullable=False
+    )
+
+    trait = db.Column(
+        db.String(100),
+        nullable=False
+    )
+
+    rating = db.Column(
+        db.Integer,
+        nullable=False
+    )
+
+    __table_args__ = (
+        db.UniqueConstraint(
+            "student_id",
+            "academic_period_id",
+            "trait",
+            name="uq_behavioral_rating"
+        ),
+    )
+
+    student = db.relationship("Student")
+    academic_period = db.relationship("AcademicPeriod")
+    teacher = db.relationship("User")
