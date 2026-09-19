@@ -1,0 +1,146 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 30px;
+    color: #111;
+}
+
+.result-container {
+    max-width: 1100px;
+    margin: auto;
+}
+
+/* School Header */
+.school-header {
+    text-align: center;
+    border-bottom: 3px solid #111;
+    padding-bottom: 15px;
+    display: flex;
+    flex-direction: row;
+    background-color: black;
+    justify-content: space-between
+}
+.school-name {
+    background-color: blue;
+}
+img {
+    background-color: purple;
+}
+.school-logo {
+    width: 100px;
+    height: auto;
+    display: block;
+    margin: 0 auto 10px;
+}
+
+.school-header h1,
+.school-header h2 {
+    margin: 0;
+}
+
+.school-header h2 {
+    margin-top: 8px;
+}
+
+/* Student Information */
+.student-info {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px 30px;
+    margin: 20px 0;
+}
+
+.student-info p {
+    margin: 4px 0;
+}
+
+/* Result Table */
+.result-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+}
+
+.result-table th,
+.result-table td {
+    border: 1px solid #333;
+    padding: 9px 7px;
+    text-align: center;
+}
+
+.result-table th {
+    background: #eee;
+    writing-mode: vertical-rl;
+    height: 150px;
+}
+
+/* Keep SUBJECTS heading horizontal */
+.result-table th:first-child {
+    writing-mode: horizontal-tb;
+    text-align: center;
+}
+
+.result-table td:first-child {
+    text-align: left;
+}
+
+/* Summary */
+.summary {
+    display: flex;
+    gap: 30px;
+    margin-top: 20px;
+    padding: 15px;
+    border: 1px solid #333;
+}
+
+.summary strong {
+    display: block;
+    margin-bottom: 4px;
+}
+
+/* Buttons and Links */
+.print-button {
+    margin-top: 20px;
+    padding: 9px 16px;
+}
+
+/* Print Styles */
+@media print {
+    .print-button,
+    .back-link {
+        display: none;
+    }
+
+    body {
+        margin: 10px;
+    }
+
+    .result-container {
+        max-width: none;
+    }
+}
+
+/* Mobile Styles */
+@media (max-width: 700px) {
+    body {
+        margin: 15px;
+    }
+
+    .student-info {
+        grid-template-columns: 1fr;
+    }
+
+    .result-table {
+        font-size: 12px;
+    }
+
+    .result-table th,
+    .result-table td {
+        padding: 6px 4px;
+    }
+
+    .summary {
+        flex-direction: column;
+        gap: 10px;
+    }
+}
+```

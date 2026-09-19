@@ -3,86 +3,137 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>{{ school_section }} Terminal Result</title>
-    <style>
-        body { font-family: Arial, sans-serif; margin: 30px; color: #111; }
-        .result-container { max-width: 1100px; margin: auto; }
-        .school-header { text-align: center; border-bottom: 3px solid #111; padding-bottom: 15px; }
-        .school-header h1, .school-header h2 { margin: 0; }
-        .school-header h2 { margin-top: 8px; }
-        .student-info { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px 30px; margin: 20px 0; }
-        .student-info p { margin: 4px 0; }
-        .result-table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-        .result-table th, .result-table td { border: 1px solid #333; padding: 9px 7px; text-align: center; }
-        .result-table th { background: #eee; }
-        .result-table th:first-child, .result-table td:first-child { text-align: left; }
-        .summary { display: flex; gap: 30px; margin-top: 20px; padding: 15px; border: 1px solid #333; }
-        .summary strong { display: block; margin-bottom: 4px; }
-        .print-button { margin-top: 20px; padding: 9px 16px; }
-        @media print {
-            .print-button, .back-link { display: none; }
-            body { margin: 10px; }
-        }
-        @media (max-width: 700px) {
-            .student-info { grid-template-columns: 1fr; }
-            .result-table { font-size: 12px; overflow-x: auto; }
-            .result-table th, .result-table td { padding: 6px 4px; }
-            .summary { flex-direction: column; gap: 10px; }
-        }
-    </style>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='result_display.css') }}">
 </head>
+
 <body>
 
 <div class="result-container">
 
+    <!-- School Header -->
     <div class="school-header">
-        <h1>NEW INNOVATION ACADEMY</h1>
-        <h2>{{ school_section }}, TERMINAL RESULT</h2>
-        <p>
-            {{ active_period.term }} —
-            {{ active_period.academic_session }} ACADEMIC SESSION
-        </p>
+
+        <img
+            src="{{ url_for('static', filename='logo.jpg') }}"
+            alt="School Logo"
+            class="school-logo"
+        >
+
+        <div class="school-name">
+            <h1>NEW INNOVATION ACADEMY</h1>
+
+            <h2>
+                {{ school_section }}, TERMINAL RESULT
+            </h2>
+
+            <p>
+                {{ active_period.term }} —
+                {{ active_period.academic_session }}
+                ACADEMIC SESSION
+            </p>
+        </div>
+
     </div>
 
+
+    <!-- Student Information -->
     <div class="student-info">
-        <p><strong>Student Name:</strong> {{ student.name }}</p>
-        <p><strong>Student ID:</strong> NIA/{{ "%04d"|format(student.id) }}</p>
-        <p><strong>Class:</strong> {{ student.class_name }}</p>
-        <p><strong>Gender:</strong> {{ student.gender }}</p>
+
+        <p>
+            <strong>Student Name:</strong>
+            {{ student.name }}
+        </p>
+
+        <p>
+            <strong>Student ID:</strong>
+            NIA/{{ "%04d"|format(student.id) }}
+        </p>
+
+        <p>
+            <strong>Class:</strong>
+            {{ student.class_name }}
+        </p>
+
+        <p>
+            <strong>Gender:</strong>
+            {{ student.gender }}
+        </p>
+
     </div>
 
+
+    <!-- Result Table -->
     <table class="result-table">
+
         <thead>
             <tr>
-                <th>Subject</th>
-                <th>CA1</th>
-                <th>CA2</th>
-                <th>CA3</th>
-                <th>Exam</th>
-                <th>Total</th>
-                <th>Grade</th>
-                <th>Remark</th>
-                <th>Last Term Cum.</th>
-                <th>Cumulative Average</th>
-                <th>Class Average</th>
+
+                <th>SUBJECTS</th>
+
+                <th>1ST TEST</th>
+
+                <th>2ND TEST</th>
+
+                <th>3RD TEST</th>
+
+                <th>TERM'S EXAM</th>
+
+                <th>SUMMARY OF TERM'S WORK</th>
+
+                <th>LAST TERM'S CUMMULATIVE</th>
+
+                <th>CUMMULATIVE AVERAGE</th>
+
+                <th>CLASS AVERAGE</th>
+
+                <th>GRADE</th>
+
+                <th>SUBJECT TEACHER'S REMARK</th>
+
             </tr>
         </thead>
 
+
         <tbody>
+
             {% for subject in subjects %}
+
                 {% set score = scores.get(subject.id) %}
+
                 {% set total = calculate_total(score) %}
+
                 {% set cumulative = cumulative_results.get(subject.id) %}
 
                 <tr>
-                    <td>{{ subject.name }}</td>
-                    <td>{{ score.ca1 if score else 0 }}</td>
-                    <td>{{ score.ca2 if score else 0 }}</td>
-                    <td>{{ score.ca3 if score else 0 }}</td>
-                    <td>{{ score.exam if score else 0 }}</td>
-                    <td><strong>{{ total }}</strong></td>
-                    <td>{{ calculate_grade(total, student.class_name) }}</td>
-                    <td>{{ calculate_remark(total) }}</td>
+
+                    <td>
+                        {{ subject.name }}
+                    </td>
+
+                    <td>
+                        {{ score.ca1 if score else 0 }}
+                    </td>
+
+                    <td>
+                        {{ score.ca2 if score else 0 }}
+                    </td>
+
+                    <td>
+                        {{ score.ca3 if score else 0 }}
+                    </td>
+
+                    <td>
+                        {{ score.exam if score else 0 }}
+                    </td>
+
+                    <td>
+                        <strong>{{ total }}</strong>
+                    </td>
+
                     <td>
                         {% if cumulative and cumulative.last_term_cumulative is not none %}
                             {{ "%.2f"|format(cumulative.last_term_cumulative) }}
@@ -90,40 +141,81 @@
                             —
                         {% endif %}
                     </td>
+
                     <td>
-                        {{ "%.2f"|format(cumulative.cumulative_average if cumulative else total) }}
+                        {{ "%.2f"|format(
+                            cumulative.cumulative_average
+                            if cumulative
+                            else total
+                        ) }}
                     </td>
+
                     <td>
-                        {{ "%.2f"|format(class_averages.get(subject.id, 0)) }}
+                        {{ "%.2f"|format(
+                            class_averages.get(subject.id, 0)
+                        ) }}
                     </td>
+
+                    <td>
+                        {{ calculate_grade(total, student.class_name) }}
+                    </td>
+
+                    <td>
+                        {{ calculate_remark(total) }}
+                    </td>
+
                 </tr>
+
             {% endfor %}
+
         </tbody>
+
     </table>
 
+
+    <!-- Result Summary -->
     <div class="summary">
+
         <div>
             <strong>Total Marks</strong>
             {{ overall_total }}
         </div>
+
         <div>
             <strong>Average</strong>
             {{ "%.2f"|format(overall_average) }}%
         </div>
+
         <div>
             <strong>Subjects</strong>
             {{ subjects|length }}
         </div>
+
     </div>
 
-    <button class="print-button" onclick="window.print()">Print Result</button>
 
-    <br><br>
-    <a class="back-link" href="/result-sheet">Back to Student Selection</a>
+    <!-- Actions -->
+    <button
+        class="print-button"
+        onclick="window.print()">
+        Print Result
+    </button>
+
+    <br>
+    <br>
+
+    <a class="back-link" href="/result-sheet">
+        Back to Student Selection
+    </a>
+
     &nbsp; | &nbsp;
-    <a class="back-link" href="/dashboard">Back to Dashboard</a>
+
+    <a class="back-link" href="/dashboard">
+        Back to Dashboard
+    </a>
 
 </div>
 
 </body>
 </html>
+```
