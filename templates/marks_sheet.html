@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Subject Marks Sheet</title>
+</head>
+<body>
+
+<h2>Subject Marks Sheet</h2>
+
+<p>
+    <strong>Academic Session:</strong> {{ active_period.academic_session }}
+</p>
+<p>
+    <strong>Term:</strong> {{ active_period.term }}
+</p>
+
+<hr>
+
+<form method="GET" action="/marks-sheet">
+    <label for="assignment_id">Select Class / Subject</label><br>
+    <select name="assignment_id" id="assignment_id" required>
+        <option value="">Select Class / Subject</option>
+        {% for item in assignments %}
+            <option value="{{ item.id }}"
+                {% if assignment and assignment.id == item.id %}selected{% endif %}>
+                {{ item.class_name }} - {{ item.subject.name }}
+            </option>
+        {% endfor %}
+    </select>
+    <button type="submit">View Marks</button>
+</form>
+
+{% if assignment %}
+
+    <h3>
+        {{ assignment.class_name }} — {{ assignment.subject.name }}
+    </h3>
+
+    {% if students %}
+        <table border="1" cellpadding="8" cellspacing="0">
+            <thead>
+                <tr>
+                    <th>Student</th>
+                    <th>CA 1</th>
+                    <th>CA 2</th>
+                    <th>CA 3</th>
+                    <th>Exam</th>
+                    <th>Total</th>
+                    <th>Grade</th>
+                    <th>Remark</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for student in students %}
+                    {% set score = scores.get(student.id) %}
+                    {% set total = calculate_total(score) %}
+                    <tr>
+                        <td>{{ student.name }}</td>
+                        <td>{{ score.ca1 if score else 0 }}</td>
+                        <td>{{ score.ca2 if score else 0 }}</td>
+                        <td>{{ score.ca3 if score else 0 }}</td>
+                        <td>{{ score.exam if score else 0 }}</td>
+                        <td><strong>{{ total }}</strong></td>
+                        <td>{{ calculate_grade(total) }}</td>
+                        <td>{{ calculate_remark(total) }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>There are no students in this class yet.</p>
+    {% endif %}
+
+{% endif %}
+
+<br>
+<a href="/dashboard">Back to Dashboard</a>
+
+</body>
+</html>
