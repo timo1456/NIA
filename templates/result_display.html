@@ -60,7 +60,11 @@
             </p>
             <p>
                 <strong>Next Term Begins:</strong>
-                {{ student.gender }}
+                {% if active_period.next_term_begins %}
+                    {{ active_period.next_term_begins.strftime("%d/%m/%Y") }}
+                {% else %}
+                    —
+                {% endif %}
             </p>
         </div>
     </div>
@@ -192,6 +196,65 @@
         </div>
 
     </div>
+
+
+    {% if behavior_complete %}
+
+        <div style="margin-top: 25px;">
+
+            <h3 style="text-align: center;">
+                OBSERVABLE TRAITS' RATINGS
+            </h3>
+
+            <table border="1" cellpadding="6" cellspacing="0" style="width: 100%; border-collapse: collapse;">
+
+                <thead>
+                    <tr>
+                        <th>TRAITS</th>
+                        <th>5</th>
+                        <th>4</th>
+                        <th>3</th>
+                        <th>2</th>
+                        <th>1</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    {% for trait in behavior_traits %}
+
+                        <tr>
+
+                            <td>{{ trait }}</td>
+
+                            {% for value in [5, 4, 3, 2, 1] %}
+
+                                <td style="text-align: center;">
+                                    {% if behavior_ratings.get(trait) == value %}
+                                        ✓
+                                    {% endif %}
+                                </td>
+
+                            {% endfor %}
+
+                        </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+            <p><strong>Key to Ratings</strong></p>
+            <p>5: Maintains an excellent degree of observable traits</p>
+            <p>4: Maintains a high level of observable traits</p>
+            <p>3: Maintains acceptable level of observable traits</p>
+            <p>2: Shows minimal level of observable traits</p>
+            <p>1: Has no regards for observable traits</p>
+
+        </div>
+
+    {% endif %}
 
 
     <!-- Actions -->
