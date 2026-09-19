@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Behavioral Rating</title>
+
+</head>
+
+<body>
+
+    <h1>Observable Traits' Ratings</h1>
+
+    <p>
+        <strong>Academic Session:</strong>
+        {{ active_period.academic_session }}
+    </p>
+
+    <p>
+        <strong>Term:</strong>
+        {{ active_period.term }}
+    </p>
+
+    <hr>
+
+    <form method="GET">
+
+        <label for="class_name">
+            Class
+        </label>
+
+        <br>
+
+        <select
+            id="class_name"
+            name="class_name"
+            onchange="this.form.submit()"
+            required
+        >
+
+            <option value="">
+                Select Class
+            </option>
+
+            {% for class_name in classes %}
+
+                <option
+                    value="{{ class_name }}"
+                    {% if selected_class == class_name %}selected{% endif %}
+                >
+                    {{ class_name }}
+                </option>
+
+            {% endfor %}
+
+        </select>
+
+    </form>
+
+    {% if selected_class %}
+
+        <br>
+
+        <form method="GET">
+
+            <input
+                type="hidden"
+                name="class_name"
+                value="{{ selected_class }}"
+            >
+
+            <label for="student_id">
+                Student
+            </label>
+
+            <br>
+
+            <select
+                id="student_id"
+                name="student_id"
+                onchange="this.form.submit()"
+                required
+            >
+
+                <option value="">
+                    Select Student
+                </option>
+
+                {% for item in students %}
+
+                    <option
+                        value="{{ item.id }}"
+                        {% if student and student.id == item.id %}selected{% endif %}
+                    >
+                        {{ item.name }}
+                    </option>
+
+                {% endfor %}
+
+            </select>
+
+        </form>
+
+    {% endif %}
+
+    {% if student %}
+
+        <hr>
+
+        <h2>{{ student.name }}</h2>
+
+        <form method="POST">
+
+            <input
+                type="hidden"
+                name="class_name"
+                value="{{ selected_class }}"
+            >
+
+            <input
+                type="hidden"
+                name="student_id"
+                value="{{ student.id }}"
+            >
+
+            <table border="1" cellpadding="8" cellspacing="0">
+
+                <thead>
+
+                    <tr>
+                        <th>TRAITS</th>
+                        <th>5</th>
+                        <th>4</th>
+                        <th>3</th>
+                        <th>2</th>
+                        <th>1</th>
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                    {% for trait in traits %}
+
+                        <tr>
+
+                            <td>
+                                {{ trait }}
+                            </td>
+
+                            {% for value in [5, 4, 3, 2, 1] %}
+
+                                <td style="text-align: center;">
+
+                                    <input
+                                        type="radio"
+                                        name="rating_{{ trait }}"
+                                        value="{{ value }}"
+                                        {% if ratings.get(trait) == value %}checked{% endif %}
+                                        required
+                                    >
+
+                                </td>
+
+                            {% endfor %}
+
+                        </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+            <br>
+
+            <button type="submit">
+                Save Behavioral Ratings
+            </button>
+
+        </form>
+
+        <hr>
+
+        <h3>Rating Key</h3>
+
+        <p><strong>5:</strong> Maintains an excellent degree of observable traits</p>
+        <p><strong>4:</strong> Maintains a high level of observable traits</p>
+        <p><strong>3:</strong> Maintains acceptable level of observable traits</p>
+        <p><strong>2:</strong> Shows minimal level of observable traits</p>
+        <p><strong>1:</strong> Has no regards for observable traits</p>
+
+    {% endif %}
+
+    <br>
+
+    <a href="/dashboard">
+        Back to Dashboard
+    </a>
+
+</body>
+
+</html>
