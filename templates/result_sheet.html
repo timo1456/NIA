@@ -19,7 +19,7 @@
         {{ active_period.term }}
     </p>
 
-    <form method="GET" action="/result-sheet">
+    <form method="GET" action="/result-sheet" onsubmit="this.action='/result/' + document.getElementById('student_id').value;">
         <label for="student_id">Select Student</label><br>
 
         <select name="student_id" id="student_id" required>
@@ -33,9 +33,7 @@
         </select>
 
         <br><br>
-        <button type="submit"
-                formaction="/result/{{ 0 }}"
-                onclick="this.form.action='/result/' + document.getElementById('student_id').value;">
+        <button type="submit">
             View Result
         </button>
     </form>
