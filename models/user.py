@@ -24,6 +24,12 @@ class Subject(db.Model):
 class TeacherAssignment(db.Model):
     id = db.Column(db.Integer, primary_key=True)
 
+    teacher_id = db.Column(
+        db.Integer,
+        db.ForeignKey("user.id", ondelete="CASCADE"),
+        nullable=False
+    )
+
     subject_id = db.Column(
         db.Integer,
         db.ForeignKey("subject.id", ondelete="CASCADE"),
@@ -170,12 +176,6 @@ class BehavioralRating(db.Model):
     academic_period_id = db.Column(
         db.Integer,
         db.ForeignKey("academic_period.id", ondelete="CASCADE"),
-        nullable=False
-    )
-
-    teacher_id = db.Column(
-        db.Integer,
-        db.ForeignKey("user.id", ondelete="CASCADE"),
         nullable=False
     )
 
