@@ -8,7 +8,8 @@ from models.user import (
     Subject,
     TeacherAssignment,
     Score,
-    AcademicPeriod
+    AcademicPeriod,
+    BehavioralRating
 )
 
 import os
@@ -61,6 +62,23 @@ SCORE_LIMITS = {
 with app.app_context():
 
     db.create_all()
+
+    # Add newly introduced AcademicPeriod columns to existing SQLite databases.
+    from sqlalchemy import inspect
+    inspector = inspect(db.engine)
+    academic_period_columns = {
+        column["name"]
+        for column in inspector.get_columns("academic_period")
+    }
+
+    if "next_term_begins" not in academic_period_columns:
+        db.session.execute(
+            db.text(
+                "ALTER TABLE academic_period "
+                "ADD COLUMN next_term_begins DATE"
+            )
+        )
+        db.session.commit()
 
     admin = User.query.filter_by(
         username="Admin"
@@ -1149,6 +1167,158 @@ def result_sheet():
     )
 
 
+@app.route("/behavior-rating", methods=["GET", "POST"])
+def behavior_rating():
+    if session.get("role") != "teacher":
+        return "Unauthorized", 403
+
+    teacher = User.query.filter_by(
+        id=session.get("user_id"),
+        role="teacher"
+    ).first()
+
+    if not teacher:
+        return "Unauthorized", 403
+
+    active_period = get_active_period()
+
+    if not active_period:
+        return (
+            "No active academic period has been set. "
+            "Ask the administrator to set one."
+        )
+
+    assignments = TeacherAssignment.query.filter_by(
+        teacher_id=teacher.id
+    ).join(
+        Subject
+    ).order_by(
+        TeacherAssignment.class_name,
+        Subject.name
+    ).all()
+
+    assigned_classes = sorted({
+        assignment.class_name
+        for assignment in assignments
+    })
+
+    selected_class = request.values.get("class_name", "").strip()
+    selected_student_id = request.values.get("student_id", "").strip()
+
+    if selected_class not in assigned_classes:
+        selected_class = ""
+
+    students = []
+    student = None
+    ratings = {}
+
+    if selected_class:
+        students = Student.query.filter_by(
+            class_name=selected_class
+        ).order_by(Student.name).all()
+
+    if selected_student_id.isdigit():
+        student = Student.query.filter_by(
+            id=int(selected_student_id),
+            class_name=selected_class
+        ).first()
+
+    if student:
+        existing_ratings = BehavioralRating.query.filter_by(
+            student_id=student.id,
+            academic_period_id=active_period.id
+        ).all()
+
+        ratings = {
+            rating.trait: rating.rating
+            for rating in existing_ratings
+        }
+
+    traits = [
+        "Punctuality",
+        "Attendance In Class",
+        "Reliability",
+        "Neatness",
+        "Politeness",
+        "Honesty",
+        "Relationship with Staff",
+        "Relationship with Students",
+        "Self Control",
+        "Spirit of Cooperation",
+        "Sense of Responsibility",
+        "Attentiveness",
+        "Initiative",
+        "Organisational Ability",
+        "Perseverance",
+        "Fluency",
+        "Games",
+        "Sports",
+        "Drawing and Painting",
+        "Musical Skills",
+        "Handing of Tools"
+    ]
+
+    if request.method == "POST":
+        if not student:
+            return "Invalid student selection", 400
+
+        submitted_ratings = {}
+
+        for trait in traits:
+            raw_rating = request.form.get(
+                "rating_" + trait,
+                ""
+            )
+
+            if raw_rating not in {"1", "2", "3", "4", "5"}:
+                return (
+                    f"Please select a rating for {trait}.",
+                    400
+                )
+
+            submitted_ratings[trait] = int(raw_rating)
+
+        for trait, rating_value in submitted_ratings.items():
+            existing = BehavioralRating.query.filter_by(
+                student_id=student.id,
+                academic_period_id=active_period.id,
+                trait=trait
+            ).first()
+
+            if existing:
+                existing.rating = rating_value
+                existing.teacher_id = teacher.id
+            else:
+                db.session.add(
+                    BehavioralRating(
+                        student_id=student.id,
+                        academic_period_id=active_period.id,
+                        teacher_id=teacher.id,
+                        trait=trait,
+                        rating=rating_value
+                    )
+                )
+
+        db.session.commit()
+
+        return redirect(
+            f"/behavior-rating?class_name={selected_class}"
+            f"&student_id={student.id}"
+        )
+
+    return render_template(
+        "behavior_rating.html",
+        active_period=active_period,
+        classes=assigned_classes,
+        students=students,
+        selected_class=selected_class,
+        selected_student_id=student.id if student else "",
+        student=student,
+        traits=traits,
+        ratings=ratings
+    )
+
+
 @app.route("/result/<int:student_id>")
 def result_display(student_id):
 
@@ -1241,6 +1411,16 @@ def result_display(student_id):
         else 0
     )
 
+    behavior_ratings = BehavioralRating.query.filter_by(
+        student_id=student.id,
+        academic_period_id=active_period.id
+    ).all()
+
+    behavior_ratings = {
+        rating.trait: rating.rating
+        for rating in behavior_ratings
+    }
+
     return render_template(
         "result_display.html",
         student=student,
@@ -1254,7 +1434,8 @@ def result_display(student_id):
         calculate_total=calculate_total,
         calculate_grade=calculate_grade,
         calculate_remark=calculate_remark,
-        school_section=get_school_section(student.class_name)
+        school_section=get_school_section(student.class_name),
+        behavior_ratings=behavior_ratings
     )
 
 
@@ -1276,6 +1457,11 @@ def academic_period():
             ""
         ).strip()
 
+        next_term_begins = request.form.get(
+            "next_term_begins",
+            ""
+        ).strip()
+
         valid_terms = {
             "First Term",
             "Second Term",
@@ -1284,6 +1470,17 @@ def academic_period():
 
         if not academic_session or term not in valid_terms:
             return "Invalid academic period", 400
+
+        if next_term_begins:
+            from datetime import date
+            try:
+                next_term_begins = date.fromisoformat(
+                    next_term_begins
+                )
+            except ValueError:
+                return "Invalid next term begins date", 400
+        else:
+            next_term_begins = None
 
         AcademicPeriod.query.update(
             {
@@ -1300,13 +1497,15 @@ def academic_period():
         if period:
 
             period.is_active = True
+            period.next_term_begins = next_term_begins
 
         else:
 
             period = AcademicPeriod(
                 academic_session=academic_session,
                 term=term,
-                is_active=True
+                is_active=True,
+                next_term_begins=next_term_begins
             )
 
             db.session.add(period)
