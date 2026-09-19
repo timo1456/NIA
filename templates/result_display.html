@@ -194,6 +194,143 @@
     </div>
 
 
+    <!-- Observable Traits Ratings -->
+    <div style="margin-top: 25px; width: 100%;">
+
+        <div style="
+            background-color: rgb(83, 0, 0);
+            color: #ffd700;
+            font-weight: bold;
+            text-align: center;
+            padding: 7px 5px;
+            font-size: 16px;
+            border: 1px solid #111;
+        ">
+            OBSERVABLE TRAITS' RATINGS
+        </div>
+
+        <table style="
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+            font-size: 12px;
+            margin: 0;
+        ">
+            <thead>
+                <tr>
+                    <th style="
+                        width: 60%;
+                        border: 1px solid #111;
+                        padding: 5px;
+                        text-align: left;
+                        background-color: #f2f2f2;
+                    ">TRAITS</th>
+
+                    <th style="border: 1px solid #111; padding: 5px; background-color: #f2f2f2;">5</th>
+                    <th style="border: 1px solid #111; padding: 5px; background-color: #f2f2f2;">4</th>
+                    <th style="border: 1px solid #111; padding: 5px; background-color: #f2f2f2;">3</th>
+                    <th style="border: 1px solid #111; padding: 5px; background-color: #f2f2f2;">2</th>
+                    <th style="border: 1px solid #111; padding: 5px; background-color: #f2f2f2;">1</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% set traits = [
+                    "Punctuality",
+                    "Attendance In Class",
+                    "Reliability",
+                    "Neatness",
+                    "Politeness",
+                    "Honesty",
+                    "Relationship with Staff",
+                    "Relationship with Students",
+                    "Self Control",
+                    "Spirit of Cooperation",
+                    "Sense of Responsibility",
+                    "Attentiveness",
+                    "Initiative",
+                    "Organisational Ability",
+                    "Perseverance",
+                    "Fluency",
+                    "Games",
+                    "Sports",
+                    "Drawing and Painting",
+                    "Musical Skills",
+                    "Handing of Tools"
+                ] %}
+
+                {% for trait in traits %}
+                <tr>
+                    <td style="
+                        border: 1px solid #111;
+                        padding: 4px 6px;
+                        text-align: left;
+                    ">
+                        {{ loop.index }}. {{ trait }}
+                    </td>
+
+                    {% for rating in [5, 4, 3, 2, 1] %}
+                    <td style="
+                        border: 1px solid #111;
+                        padding: 4px;
+                        text-align: center;
+                        height: 20px;
+                    ">
+                        &nbsp;
+                    </td>
+                    {% endfor %}
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <div style="
+            background-color: rgb(83, 0, 0);
+            color: #ffd700;
+            font-weight: bold;
+            text-align: center;
+            padding: 7px 5px;
+            font-size: 14px;
+            border: 1px solid #111;
+            margin-top: 10px;
+        ">
+            KEY TO RATINGS
+        </div>
+
+        <table style="
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+            font-size: 11px;
+            margin: 0;
+        ">
+            <tbody>
+                <tr>
+                    <td style="width: 8%; border: 1px solid #111; padding: 4px; text-align: center; font-weight: bold;">5</td>
+                    <td style="border: 1px solid #111; padding: 4px;">Maintains an excellent degree of observable traits</td>
+                </tr>
+                <tr>
+                    <td style="border: 1px solid #111; padding: 4px; text-align: center; font-weight: bold;">4</td>
+                    <td style="border: 1px solid #111; padding: 4px;">Maintains a high level of observable traits</td>
+                </tr>
+                <tr>
+                    <td style="border: 1px solid #111; padding: 4px; text-align: center; font-weight: bold;">3</td>
+                    <td style="border: 1px solid #111; padding: 4px;">Maintains acceptable level of observable traits</td>
+                </tr>
+                <tr>
+                    <td style="border: 1px solid #111; padding: 4px; text-align: center; font-weight: bold;">2</td>
+                    <td style="border: 1px solid #111; padding: 4px;">Shows minimal level of observable traits</td>
+                </tr>
+                <tr>
+                    <td style="border: 1px solid #111; padding: 4px; text-align: center; font-weight: bold;">1</td>
+                    <td style="border: 1px solid #111; padding: 4px;">Has no regards for observable traits</td>
+                </tr>
+            </tbody>
+        </table>
+
+    </div>
+
+
     <!-- Actions -->
     <button
         class="print-button"
