@@ -49,6 +49,20 @@
 
         </p>
 
+        <p>
+
+            <strong>
+                Next Term Begins:
+            </strong>
+
+            {% if active_period.next_term_begins %}
+                {{ active_period.next_term_begins.strftime("%d/%m/%Y") }}
+            {% else %}
+                Not set
+            {% endif %}
+
+        </p>
+
 
     {% else %}
 
@@ -121,6 +135,22 @@
         <br><br>
 
 
+        <label for="next_term_begins">
+            Next Term Begins
+        </label>
+
+        <br>
+
+        <input
+            type="date"
+            id="next_term_begins"
+            name="next_term_begins"
+        >
+
+
+        <br><br>
+
+
         <button type="submit">
             Set Active Period
         </button>
@@ -155,6 +185,10 @@
                     </th>
 
                     <th>
+                        Next Term Begins
+                    </th>
+
+                    <th>
                         Status
                     </th>
 
@@ -176,6 +210,14 @@
 
                         <td>
                             {{ period.term }}
+                        </td>
+
+                        <td>
+                            {% if period.next_term_begins %}
+                                {{ period.next_term_begins.strftime("%d/%m/%Y") }}
+                            {% else %}
+                                —
+                            {% endif %}
                         </td>
 
                         <td>
