@@ -1177,8 +1177,6 @@ def result_display(student_id):
         if not allowed:
             return "Unauthorized", 403
 
-    subjects = Subject.query.order_by(Subject.name).all()
-
     score_list = Score.query.filter_by(
         student_id=student.id,
         academic_period_id=active_period.id
@@ -1188,6 +1186,15 @@ def result_display(student_id):
         score.subject_id: score
         for score in score_list
     }
+
+    # Only show subjects for which this student has a score
+    # in the active academic period. This allows students in
+    # the same class to offer different subject combinations.
+    scored_subject_ids = set(scores.keys())
+
+    subjects = Subject.query.filter(
+        Subject.id.in_(scored_subject_ids)
+    ).order_by(Subject.name).all() if scored_subject_ids else []
 
     cumulative_results = {
         subject.id: calculate_cumulative(
