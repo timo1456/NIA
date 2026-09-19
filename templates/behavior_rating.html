@@ -130,9 +130,13 @@
                 value="{{ student.id }}"
             >
 
-            <table border="1" cellpadding="8" cellspacing="0">
+            <table border="1" cellpadding="8" cellspacing="0" style="border-collapse: collapse; width: 100%;">
 
-                <thead>
+                <tbody>
+
+                    <tr>
+                        <th colspan="6">OBSERVABLE TRAITS' RATINGS</th>
+                    </tr>
 
                     <tr>
                         <th>TRAITS</th>
@@ -142,10 +146,6 @@
                         <th>2</th>
                         <th>1</th>
                     </tr>
-
-                </thead>
-
-                <tbody>
 
                     {% for trait in traits %}
 
@@ -164,7 +164,6 @@
                                         name="rating_{{ trait }}"
                                         value="{{ value }}"
                                         {% if ratings.get(trait) == value %}checked{% endif %}
-                                        required
                                     >
 
                                 </td>
@@ -174,6 +173,35 @@
                         </tr>
 
                     {% endfor %}
+
+                    <tr>
+                        <th colspan="6">KEY TO RATINGS</th>
+                    </tr>
+
+                    <tr>
+                        <td><strong>5</strong></td>
+                        <td colspan="5">Maintains an excellent degree of observable traits</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>4</strong></td>
+                        <td colspan="5">Maintains a high level of observable traits</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>3</strong></td>
+                        <td colspan="5">Maintains acceptable level of observable traits</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>2</strong></td>
+                        <td colspan="5">Shows minimal level of observable traits</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>1</strong></td>
+                        <td colspan="5">Has no regards for observable traits</td>
+                    </tr>
 
                 </tbody>
 
@@ -186,16 +214,6 @@
             </button>
 
         </form>
-
-        <hr>
-
-        <h3>Rating Key</h3>
-
-        <p><strong>5:</strong> Maintains an excellent degree of observable traits</p>
-        <p><strong>4:</strong> Maintains a high level of observable traits</p>
-        <p><strong>3:</strong> Maintains acceptable level of observable traits</p>
-        <p><strong>2:</strong> Shows minimal level of observable traits</p>
-        <p><strong>1:</strong> Has no regards for observable traits</p>
 
     {% endif %}
 
