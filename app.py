@@ -122,7 +122,26 @@ def calculate_total(score):
     )
 
 
-def calculate_grade(total):
+def calculate_grade(total, class_name=None):
+
+    if class_name and class_name.startswith("SSS"):
+        if total >= 75:
+            return "A1"
+        elif total >= 70:
+            return "B2"
+        elif total >= 65:
+            return "B3"
+        elif total >= 60:
+            return "C4"
+        elif total >= 55:
+            return "C5"
+        elif total >= 50:
+            return "C6"
+        elif total >= 45:
+            return "D7"
+        elif total >= 40:
+            return "E8"
+        return "F9"
 
     if total >= 70:
         return "A"
@@ -130,14 +149,16 @@ def calculate_grade(total):
         return "B"
     elif total >= 50:
         return "C"
-    elif total >= 45:
-        return "D"
     elif total >= 40:
-        return "E"
+        return "D"
 
-    return "F"
+    return "E"
 
 
+def get_school_section(class_name):
+    if class_name and class_name.startswith("JSS"):
+        return "JUNIOR SECONDARY SCHOOL"
+    return "SENIOR SECONDARY SCHOOL"
 def calculate_remark(total):
 
     if total >= 70:
@@ -1077,14 +1098,10 @@ def marks_sheet():
     )
 
 
-@app.route("/result-sheet", methods=["GET", "POST"])
+@app.route("/result-sheet", methods=["GET"])
 def result_sheet():
 
-    if session.get("role") not in [
-        "admin",
-        "teacher"
-    ]:
-
+    if session.get("role") not in ["admin", "teacher"]:
         return "Unauthorized", 403
 
     active_period = get_active_period()
@@ -1125,116 +1142,103 @@ def result_sheet():
 
     available_students = students_query.all()
 
-    student_id = request.values.get(
-        "student_id",
-        ""
-    )
-
-    selected_student_id = None
-
-    if student_id:
-        try:
-            selected_student_id = int(student_id)
-        except ValueError:
-            selected_student_id = None
-
-    student = None
-    subjects = []
-    scores = {}
-    cumulative_results = {}
-    class_averages = {}
-    overall_total = 0
-    overall_average = 0
-
-    if selected_student_id:
-
-        student = db.session.get(
-            Student,
-            selected_student_id
-        )
-
-        if not student:
-            return "Student not found", 404
-
-        if role == "teacher":
-
-            allowed = TeacherAssignment.query.filter_by(
-                teacher_id=session.get("user_id"),
-                class_name=student.class_name
-            ).first()
-
-            if not allowed:
-                return "Unauthorized", 403
-
-        subjects = Subject.query.order_by(
-            Subject.name
-        ).all()
-
-        score_list = Score.query.filter_by(
-            student_id=student.id,
-            academic_period_id=active_period.id
-        ).all()
-
-        scores = {
-            score.subject_id: score
-            for score in score_list
-        }
-
-        cumulative_results = {
-            subject.id: calculate_cumulative(
-                student.id,
-                subject.id,
-                active_period
-            )
-            for subject in subjects
-        }
-
-        class_students = Student.query.filter_by(
-            class_name=student.class_name
-        ).all()
-
-        for subject in subjects:
-
-            subject_scores = Score.query.filter_by(
-                subject_id=subject.id,
-                academic_period_id=active_period.id
-            ).join(
-                Student
-            ).filter(
-                Student.class_name == student.class_name
-            ).all()
-
-            totals = [
-                calculate_total(score)
-                for score in subject_scores
-            ]
-
-            class_averages[subject.id] = (
-                sum(totals) / len(totals)
-                if totals
-                else 0
-            )
-
-        overall_total = sum(
-            calculate_total(score)
-            for score in scores.values()
-        )
-
-        subjects_with_scores = len(scores)
-
-        overall_average = (
-            overall_total / subjects_with_scores
-            if subjects_with_scores
-            else 0
-        )
-
     return render_template(
         "result_sheet.html",
         available_students=available_students,
-        selected_student_id=selected_student_id,
+        active_period=active_period
+    )
+
+
+@app.route("/result/<int:student_id>")
+def result_display(student_id):
+
+    if session.get("role") not in ["admin", "teacher"]:
+        return "Unauthorized", 403
+
+    active_period = get_active_period()
+
+    if not active_period:
+        return (
+            "No active academic period has been set. "
+            "Ask the administrator to set one."
+        )
+
+    student = db.session.get(Student, student_id)
+
+    if not student:
+        return "Student not found", 404
+
+    if session.get("role") == "teacher":
+        allowed = TeacherAssignment.query.filter_by(
+            teacher_id=session.get("user_id"),
+            class_name=student.class_name
+        ).first()
+
+        if not allowed:
+            return "Unauthorized", 403
+
+    subjects = Subject.query.order_by(Subject.name).all()
+
+    score_list = Score.query.filter_by(
+        student_id=student.id,
+        academic_period_id=active_period.id
+    ).all()
+
+    scores = {
+        score.subject_id: score
+        for score in score_list
+    }
+
+    cumulative_results = {
+        subject.id: calculate_cumulative(
+            student.id,
+            subject.id,
+            active_period
+        )
+        for subject in subjects
+    }
+
+    class_averages = {}
+
+    for subject in subjects:
+        subject_scores = Score.query.filter_by(
+            subject_id=subject.id,
+            academic_period_id=active_period.id
+        ).join(
+            Student
+        ).filter(
+            Student.class_name == student.class_name
+        ).all()
+
+        totals = [
+            calculate_total(score)
+            for score in subject_scores
+        ]
+
+        class_averages[subject.id] = (
+            sum(totals) / len(totals)
+            if totals
+            else 0
+        )
+
+    overall_total = sum(
+        calculate_total(score)
+        for score in scores.values()
+    )
+
+    subjects_with_scores = len(scores)
+
+    overall_average = (
+        overall_total / subjects_with_scores
+        if subjects_with_scores
+        else 0
+    )
+
+    return render_template(
+        "result_display.html",
         student=student,
         subjects=subjects,
-scores=scores,
+        scores=scores,
         cumulative_results=cumulative_results,
         class_averages=class_averages,
         active_period=active_period,
@@ -1242,7 +1246,8 @@ scores=scores,
         overall_average=overall_average,
         calculate_total=calculate_total,
         calculate_grade=calculate_grade,
-        calculate_remark=calculate_remark
+        calculate_remark=calculate_remark,
+        school_section=get_school_section(student.class_name)
     )
 
 
