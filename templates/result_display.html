@@ -24,45 +24,45 @@
         >
 
         <div class="school-name">
-            <h1>NEW INNOVATION ACADEMY</h1>
+            <h1 style="font-size: 40px; color: rgb(83, 0, 0); font-weight: bolder;">NEW INNOVATION ACADEMY</h1>
+            <p style="margin-top: -3px; font-style: italic; font-weight: 700;">.....Innovation for Global Excellence</p>
+            <p style="font-weight: bold; margin-top: -3px; font-size: 30px;">AKURE ONDO STATE</p>
+        </div>
+    </div>
+    <div class="sch_sec_name">
+        <h2 style="font-weight: 900; font-size: 25px; margin-top: -5px; color: rgb(83, 0, 0);">
+                {{ school_section }}, TERMINAL REPORT
+        </h2>
 
-            <h2>
-                {{ school_section }}, TERMINAL RESULT
-            </h2>
-
-            <p>
+            <p style="text-transform: uppercase; font-weight: bold; font-size: 18px; margin-top: -10px;">
                 {{ active_period.term }} —
                 {{ active_period.academic_session }}
                 ACADEMIC SESSION
             </p>
-        </div>
-
     </div>
-
 
     <!-- Student Information -->
     <div class="student-info">
-
-        <p>
-            <strong>Student Name:</strong>
-            {{ student.name }}
-        </p>
-
-        <p>
-            <strong>Student ID:</strong>
-            NIA/{{ "%04d"|format(student.id) }}
-        </p>
-
-        <p>
-            <strong>Class:</strong>
-            {{ student.class_name }}
-        </p>
-
-        <p>
-            <strong>Gender:</strong>
-            {{ student.gender }}
-        </p>
-
+        <div style="display: flex;">
+            <p style="width: 400px;">
+                <strong>Student Name:</strong>
+                {{ student.name }}
+            </p>
+            <p>
+                <strong>Gender:</strong>
+                {{ student.gender }}
+            </p>
+        </div>
+        <div style="background-color: white; display: flex;">
+            <p style="width: 400px;">
+                <strong>Class:</strong>
+                {{ student.class_name }}
+            </p>
+            <p>
+                <strong>Next Term Begins:</strong>
+                {{ student.gender }}
+            </p>
+        </div>
     </div>
 
 
@@ -218,4 +218,3 @@
 
 </body>
 </html>
-```
