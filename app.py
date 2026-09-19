@@ -1458,8 +1458,7 @@ def result_display(student_id):
         calculate_remark=calculate_remark,
         school_section=get_school_section(student.class_name),
         behavior_ratings=behavior_ratings,
-        behavior_traits=behavior_traits,
-        behavior_complete=behavior_complete
+        behavior_traits=behavior_traits
     )
 
 
