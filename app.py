@@ -154,6 +154,70 @@ def calculate_remark(total):
     return "Fail"
 
 
+def get_term_score(student_id, subject_id, academic_session, term):
+    period = AcademicPeriod.query.filter_by(
+        academic_session=academic_session,
+        term=term
+    ).first()
+
+    if not period:
+        return None
+
+    return Score.query.filter_by(
+        student_id=student_id,
+        subject_id=subject_id,
+        academic_period_id=period.id
+    ).first()
+
+
+def calculate_cumulative(student_id, subject_id, active_period):
+    current_score = Score.query.filter_by(
+        student_id=student_id,
+        subject_id=subject_id,
+        academic_period_id=active_period.id
+    ).first()
+
+    current_total = calculate_total(current_score)
+
+    if active_period.term == "First Term":
+        return {
+            "last_term_cumulative": None,
+            "cumulative_average": current_total
+        }
+
+    first_score = get_term_score(
+        student_id,
+        subject_id,
+        active_period.academic_session,
+        "First Term"
+    )
+
+    first_total = calculate_total(first_score)
+
+    if active_period.term == "Second Term":
+        return {
+            "last_term_cumulative": first_total,
+            "cumulative_average": (first_total + current_total) / 2
+        }
+
+    second_score = get_term_score(
+        student_id,
+        subject_id,
+        active_period.academic_session,
+        "Second Term"
+    )
+
+    second_total = calculate_total(second_score)
+    second_cumulative_average = (first_total + second_total) / 2
+
+    return {
+        "last_term_cumulative": second_cumulative_average,
+        "cumulative_average": (
+            second_cumulative_average + current_total
+        ) / 2
+    }
+
+
 @app.route("/")
 def home():
     return redirect("/login")
@@ -992,6 +1056,7 @@ def result_sheet():
     student = None
     subjects = []
     scores = {}
+    cumulative_results = {}
     class_averages = {}
     overall_total = 0
     overall_average = 0
@@ -1028,6 +1093,15 @@ def result_sheet():
         scores = {
             score.subject_id: score
             for score in score_list
+        }
+
+        cumulative_results = {
+            subject.id: calculate_cumulative(
+                student.id,
+                subject.id,
+                active_period
+            )
+            for subject in subjects
         }
 
         class_students = Student.query.filter_by(
@@ -1075,7 +1149,8 @@ def result_sheet():
         selected_student_id=selected_student_id,
         student=student,
         subjects=subjects,
-        scores=scores,
+scores=scores,
+        cumulative_results=cumulative_results,
         class_averages=class_averages,
         active_period=active_period,
         overall_total=overall_total,
