@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
 
     <title>{{ school_section }} Terminal Result</title>
 
@@ -70,8 +70,10 @@
     </div>
 
 
-    <!-- Result Table -->
-    <table class="result-table">
+    <!-- Result + Traits Tables -->
+    <div class="tables-container">
+        <div class="result-table-container">
+            <table class="result-table">
 
         <thead>
             <tr>
@@ -174,12 +176,11 @@
 
         </tbody>
 
-    </table>
+            </table>
+        </div>
 
-
-    <div style="margin-top: 25px;">
-
-        <table border="1" cellpadding="6" cellspacing="0" style="width: 100%; border-collapse: collapse;">
+        <div class="trait-table-container">
+            <table class="trait-table">
 
             <tbody>
 
@@ -245,10 +246,11 @@
 
             </tbody>
 
-        </table>
-
+            </table>
+        </div>
     </div>
 
+    <div class="bottom-section"></div>
 
     <!-- Actions -->
     <button
