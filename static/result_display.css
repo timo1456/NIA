@@ -1,15 +1,33 @@
-body {
-    font-family: Arial, sans-serif;
-    margin: 30px;
-    color: #111;
+@page {
+    size: A4 portrait;
+    margin: 0;
 }
 
-.result-container {
-    max-width: 1100px;
-    margin: auto;
-    width: 794px;
-    height: 1123px;
+* {
+    box-sizing: border-box;
+}
 
+html,
+body {
+    width: 210mm;
+    height: 297mm;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    color: #111;
+    background: white;
+}
+
+/* Fixed A4 page - intentionally not responsive */
+.result-container {
+    width: 210mm;
+    height: 297mm;
+    margin: 0;
+    padding: 10mm;
+    overflow: hidden;
 }
 
 /* School Header */
@@ -19,8 +37,9 @@ body {
     padding-bottom: 15px;
     display: flex;
     flex-direction: row;
-    height: 140px;
+    height: 40mm;
 }
+
 .school-name {
     margin-top: 30px;
     height: fit-content;
@@ -28,17 +47,12 @@ body {
 }
 
 .school-logo {
-    width: 100px;
-    height: auto;
-    display: block;
-    margin: 0 auto 10px;
-}
-.school-logo {
-    margin-left: 0px;
+    margin-left: 0;
     width: 150px;
     height: 150px;
-
+    display: block;
 }
+
 .sch_sec_name {
     text-align: center;
 }
@@ -56,36 +70,67 @@ body {
 .student-info {
     display: flex;
     flex-direction: column;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 8px 30px;
-    margin: 20px 0;
+    gap: 8px;
+    margin: 5mm 0;
 }
 
 .student-info p {
     margin: 4px 0;
 }
 
+/* Both tables occupy the full available 190mm width */
+.tables-container {
+    width: 190mm;
+    height: 80mm;
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+    gap: 4mm;
+    margin: 0;
+    padding: 0;
+}
+
+.result-table-container {
+    width: 135mm;
+    height: 80mm;
+    flex: none;
+    overflow: hidden;
+}
+
+.trait-table-container {
+    width: 51mm;
+    height: 80mm;
+    flex: none;
+    overflow: hidden;
+}
+
 /* Result Table */
 .result-table {
-    width: 60%;
+    width: 135mm;
+    height: 80mm;
     border-collapse: collapse;
-    margin-top: 15px;
+    table-layout: fixed;
+    margin: 0;
+    font-size: 6.5px;
 }
 
 .result-table th,
 .result-table td {
     border: 1px solid #333;
-    padding: 9px 7px;
+    padding: 2px 1px;
     text-align: center;
+    overflow: hidden;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
 }
 
 .result-table th {
     background: #eee;
     writing-mode: vertical-rl;
-    height: 130px;
+    height: 30mm;
+    vertical-align: middle;
 }
 
-/* Keep SUBJECTS heading horizontal */
 .result-table th:first-child {
     writing-mode: horizontal-tb;
     text-align: center;
@@ -93,6 +138,52 @@ body {
 
 .result-table td:first-child {
     text-align: left;
+    font-weight: 600;
+}
+
+.result-table th:first-child,
+.result-table td:first-child {
+    width: 20mm;
+}
+
+/* Trait Table */
+.trait-table {
+    width: 51mm;
+    height: 80mm;
+    border-collapse: collapse;
+    table-layout: fixed;
+    margin: 0;
+    font-size: 6.5px;
+}
+
+.trait-table th,
+.trait-table td {
+    border: 1px solid #333;
+    padding: 2px 1px;
+    text-align: center;
+    vertical-align: middle;
+    overflow: hidden;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+}
+
+.trait-table th {
+    background: #eee;
+}
+
+.trait-table td:first-child {
+    text-align: left;
+}
+
+.trait-table tr:nth-child(2) th:first-child {
+    width: 21mm;
+}
+
+/* Reserved space for content that will go below the tables */
+.bottom-section {
+    width: 190mm;
+    height: 60mm;
+    margin-top: 5mm;
 }
 
 /* Summary */
@@ -115,43 +206,30 @@ body {
     padding: 9px 16px;
 }
 
-/* Print Styles */
-@media print {
-    .print-button,
-    .back-link {
-        display: none;
-    }
+.back-link {
+    text-decoration: none;
+}
 
+/* Print */
+@media print {
+    html,
     body {
-        margin: 10px;
+        width: 210mm;
+        height: 297mm;
+        margin: 0;
+        padding: 0;
     }
 
     .result-container {
-        max-width: none;
-    }
-}
-
-/* Mobile Styles */
-@media (max-width: 700px) {
-    body {
-        margin: 15px;
+        width: 210mm;
+        height: 297mm;
+        margin: 0;
+        padding: 10mm;
+        overflow: hidden;
     }
 
-    .student-info {
-        grid-template-columns: 1fr;
-    }
-
-    .result-table {
-        font-size: 12px;
-    }
-
-    .result-table th,
-    .result-table td {
-        padding: 6px 4px;
-    }
-
-    .summary {
-        flex-direction: column;
-        gap: 10px;
+    .print-button,
+    .back-link {
+        display: none;
     }
 }
