@@ -833,6 +833,64 @@ def teachers():
     )
 
 
+@app.route("/change-teacher-password/<int:user_id>", methods=["GET", "POST"])
+def change_teacher_password(user_id):
+
+    if session.get("role") != "admin":
+        return "Unauthorized", 403
+
+    teacher = User.query.filter_by(
+        id=user_id,
+        role="teacher"
+    ).first()
+
+    if not teacher:
+        return "Teacher not found", 404
+
+    if request.method == "POST":
+
+        new_password = request.form.get(
+            "new_password",
+            ""
+        )
+
+        confirm_password = request.form.get(
+            "confirm_password",
+            ""
+        )
+
+        if not new_password or not confirm_password:
+            return render_template(
+                "change_teacher_password.html",
+                teacher=teacher,
+                error="Both password fields are required."
+            )
+
+        if new_password != confirm_password:
+            return render_template(
+                "change_teacher_password.html",
+                teacher=teacher,
+                error="Passwords do not match."
+            )
+
+        if len(new_password) < 8:
+            return render_template(
+                "change_teacher_password.html",
+                teacher=teacher,
+                error="Password must be at least 8 characters long."
+            )
+
+        teacher.password = generate_password_hash(new_password)
+        db.session.commit()
+
+        return redirect(f"/teacher/{teacher.id}")
+
+    return render_template(
+        "change_teacher_password.html",
+        teacher=teacher
+    )
+
+
 @app.route("/delete-teacher/<int:user_id>", methods=["POST"])
 def delete_teacher(user_id):
 
