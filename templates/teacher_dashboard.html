@@ -1,83 +1,53 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-
     <meta charset="UTF-8">
-
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
-
-    <title>Teacher Dashboard</title>
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teacher Dashboard | NIA</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='site.css') }}">
 </head>
-
-
 <body class="app-page">
+    <header class="app-header">
+        <a class="mini-brand" href="/">
+            <img src="{{ url_for('static', filename='logo.jpg') }}" alt="School logo">
+            <span>NEW INNOVATION ACADEMY</span>
+        </a>
+        <a class="nav-link" href="/logout">Logout</a>
+    </header>
 
-    <h1>Teacher Dashboard</h1>
+    <main class="app-shell">
+        <div class="page-heading">
+            <span class="eyebrow">STAFF PORTAL</span>
+            <h1>Teacher Dashboard</h1>
+            <p class="muted">Welcome {{ user }}. Manage scores, assessments and student results.</p>
+        </div>
 
-
-    <p>
-        Welcome {{ user }}
-    </p>
-
-
-    <hr>
-
-
-    <a href="/marks-sheet">
-        Subject Marks Sheet
-    </a>
-
-    <br><br>
-
-    <a href="/add-score">
-        Add Scores
-    </a>
-
-    <br><br>
-
-    <a href="/behavior-rating">
-        Behavioral Ratings
-    </a>
-
-
-    <br><br>
-
-
-    <a href="/result-sheet">
-        View Result Sheet
-    </a>
-
-
-    <br><br>
-
-
-    <a href="/students">
-        View Students
-    </a>
-
-
-    <br><br>
-
-
-    <a href="/teachers">
-        View Teachers
-    </a>
-
-
-    <br><br>
-
-
-    <a href="/logout">
-        Logout
-    </a>
-
-
+        <div class="teacher-dashboard-grid">
+            <a class="teacher-dashboard-card" href="/marks-sheet">
+                <strong>Subject Marks Sheet</strong>
+                <span>Review entered scores and performance for your assigned subjects.</span>
+            </a>
+            <a class="teacher-dashboard-card" href="/add-score">
+                <strong>Add Scores</strong>
+                <span>Enter CA and examination scores for your assigned classes.</span>
+            </a>
+            <a class="teacher-dashboard-card" href="/behavior-rating">
+                <strong>Behavioural Ratings</strong>
+                <span>Record observable-trait ratings for students.</span>
+            </a>
+            <a class="teacher-dashboard-card" href="/result-sheet">
+                <strong>View Result Sheet</strong>
+                <span>Preview an individual student's terminal result.</span>
+            </a>
+            <a class="teacher-dashboard-card" href="/students">
+                <strong>View Students</strong>
+                <span>Browse student records and class information.</span>
+            </a>
+            <a class="teacher-dashboard-card" href="/teachers">
+                <strong>View Teachers</strong>
+                <span>View available staff information.</span>
+            </a>
+        </div>
+    </main>
 </body>
-
 </html>
