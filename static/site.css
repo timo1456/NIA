@@ -261,3 +261,31 @@ button, input, select { font: inherit; }
 .dashboard-card-accent { border-top: 4px solid var(--yellow); }
 @media (max-width: 850px) { .dashboard-grid { grid-template-columns: repeat(2, minmax(0,1fr)); } }
 @media (max-width: 560px) { .dashboard-grid { grid-template-columns: 1fr; } }
+
+.app-page > h1, .app-page > h2, .app-page > h3, .app-page > p, .app-page > a,
+.app-page > ul, .app-page > form, .app-page > table, .app-page > hr {
+    margin-left: 4vw;
+    margin-right: 4vw;
+}
+.app-page > h1 { padding-top: 34px; color: var(--wine); }
+.app-page > h2 { color: var(--wine); margin-top: 28px; }
+.app-page > form { max-width: 720px; }
+.app-page form input, .app-page form select, .app-page form textarea {
+    padding: 10px 12px;
+    border: 1px solid #d9cccc;
+    border-radius: 8px;
+    background: var(--white);
+}
+.app-page button {
+    padding: 10px 15px;
+    border: 0;
+    border-radius: 8px;
+    background: var(--wine);
+    color: var(--white);
+    font-weight: 800;
+    cursor: pointer;
+}
+.app-page table { background: var(--white); border-collapse: collapse; }
+.app-page th { background: var(--yellow-soft); color: var(--wine); }
+.app-page th, .app-page td { padding: 10px 12px; border: 1px solid var(--line); }
+.app-page li { margin: 10px 0; }
