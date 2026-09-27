@@ -3,45 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Select Student Result</title>
+    <title>Select Student Result | NIA</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='site.css') }}">
 </head>
 <body class="app-page">
+    <main class="app-shell">
+        <div class="page-heading">
+            <span class="eyebrow">RESULT MANAGEMENT</span>
+            <h1>Select Student Result</h1>
+            <p class="muted">{{ active_period.term }} · {{ active_period.academic_session }}</p>
+        </div>
 
-<div class="result-container">
-    <h2>Select Student Result</h2>
-
-    <p>
-        <strong>Academic Session:</strong>
-        {{ active_period.academic_session }}
-    </p>
-    <p>
-        <strong>Term:</strong>
-        {{ active_period.term }}
-    </p>
-
-    <form method="GET" action="/result-sheet" onsubmit="this.action='/result/' + document.getElementById('student_id').value;">
-        <label for="student_id">Select Student</label><br>
-
-        <select name="student_id" id="student_id" required>
-            <option value="">Select Student</option>
-
-            {% for item in available_students %}
-                <option value="{{ item.id }}">
-                    {{ item.name }} — {{ item.class_name }}
-                </option>
-            {% endfor %}
-        </select>
-
-        <br><br>
-        <button type="submit">
-            View Result
-        </button>
-    </form>
-
-    <br>
-    <a href="/dashboard">Back to Dashboard</a>
-</div>
-
+        <section class="portal-card" style="max-width:720px; margin-top:25px;">
+            <form method="GET" action="/result-sheet" onsubmit="this.action='/result/' + document.getElementById('student_id').value;">
+                <label for="student_id">Student</label>
+                <select name="student_id" id="student_id" required style="width:100%; padding:12px; margin-top:8px;">
+                    <option value="">Select Student</option>
+                    {% for item in available_students %}
+                        <option value="{{ item.id }}">{{ item.id }} — {{ item.name }} — {{ item.class_name }}</option>
+                    {% endfor %}
+                </select>
+                <button class="btn btn-primary" type="submit" style="margin-top:18px;">View Result</button>
+            </form>
+        </section>
+        <br>
+        <a class="back-link" href="/dashboard">← Back to Dashboard</a>
+    </main>
 </body>
 </html>
