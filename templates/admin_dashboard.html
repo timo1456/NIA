@@ -1,119 +1,38 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
-
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
-
-    <title>Admin Dashboard</title>
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard | NIA</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='site.css') }}">
 </head>
-
-<body>
-
-    <h1>Admin Dashboard</h1>
-
-    <p>
-        Welcome {{ user }}
-    </p>
-
-    <hr>
-
-
-    <h3>Academic Period</h3>
-
-    <a href="/academic-period">
-        Manage Academic Session & Term
+<body class="app-page">
+<header class="app-header">
+    <a class="mini-brand" href="/">
+        <img src="{{ url_for('static', filename='logo.jpg') }}" alt="School logo">
+        <span>NEW INNOVATION ACADEMY</span>
     </a>
+    <a class="nav-link" href="/logout">Logout</a>
+</header>
 
+<main class="app-shell">
+    <div class="page-heading">
+        <span class="eyebrow">ADMINISTRATION</span>
+        <h1>School Management Dashboard</h1>
+        <p class="muted">Welcome, {{ user }}. Manage academic records from one place.</p>
+    </div>
 
-    <hr>
-
-
-    <h3>Students</h3>
-
-    <a href="/create-student">
-        Create Student
-    </a>
-
-    <br>
-
-    <a href="/students">
-        View Students
-    </a>
-
-
-    <hr>
-
-
-    <h3>Teachers</h3>
-
-    <a href="/create-teacher">
-        Create Teacher
-    </a>
-
-    <br>
-
-    <a href="/teachers">
-        View Teachers
-    </a>
-
-
-    <hr>
-
-
-    <h3>Subjects</h3>
-
-    <a href="/add-subject">
-        Add Subject
-    </a>
-
-    <br>
-
-    <a href="/subjects">
-        View Subjects
-    </a>
-
-
-    <hr>
-
-
-    <h3>Marks</h3>
-
-    <a href="/marks-sheet">
-        Subject Marks Sheet
-    </a>
-
-    <hr>
-
-    <h3>Results</h3>
-
-    <a href="/result-sheet">
-        View Result Sheet
-    </a>
-
-
-    <hr>
-
-
-    <a href="/logout">
-        Logout
-    </a>
-
-
+    <div class="dashboard-grid">
+        <a class="dashboard-card" href="/academic-period"><strong>Academic Period</strong><span>Manage sessions, terms and next-term dates.</span></a>
+        <a class="dashboard-card" href="/students"><strong>Students</strong><span>View and manage student records.</span></a>
+        <a class="dashboard-card" href="/create-student"><strong>Add Student</strong><span>Create a new student record.</span></a>
+        <a class="dashboard-card" href="/teachers"><strong>Teachers</strong><span>Manage teaching staff and assignments.</span></a>
+        <a class="dashboard-card" href="/create-teacher"><strong>Add Teacher</strong><span>Create staff accounts and assignments.</span></a>
+        <a class="dashboard-card" href="/subjects"><strong>Subjects</strong><span>Manage the school's subject catalogue.</span></a>
+        <a class="dashboard-card" href="/marks-sheet"><strong>Marks Sheets</strong><span>Review academic score sheets.</span></a>
+        <a class="dashboard-card" href="/result-sheet"><strong>Result Sheets</strong><span>Preview individual terminal reports.</span></a>
+        <a class="dashboard-card dashboard-card-accent" href="/admin/result-tokens"><strong>Result Tokens</strong><span>Generate secure tokens for students to access results.</span></a>
+    </div>
+</main>
 </body>
-
-<style>
-
-    body {
-        background-color: black;
-        color: beige;
-    }
-
-</style>
-
 </html>
