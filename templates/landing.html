@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>New Innovation Academy | Student Results</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='site.css') }}">
+</head>
+<body class="landing-page">
+    <header class="public-nav">
+        <a class="brand" href="/">
+            <img src="{{ url_for('static', filename='logo.jpg') }}" alt="New Innovation Academy logo">
+            <span>NEW INNOVATION ACADEMY</span>
+        </a>
+        <a class="nav-link" href="/login">Staff Login</a>
+    </header>
+
+    <main class="hero">
+        <section class="hero-copy">
+            <span class="eyebrow">NEW INNOVATION ACADEMY</span>
+            <h1>Innovation for <span>Global Excellence.</span></h1>
+            <p class="hero-text">
+                A secure digital platform for managing academic records and giving students
+                convenient access to their school results.
+            </p>
+            <div class="hero-actions">
+                <a class="btn btn-primary" href="/check-result">Check My Result</a>
+                <a class="btn btn-secondary" href="/login">Staff Portal</a>
+            </div>
+            <div class="trust-row">
+                <div><strong>Secure</strong><small>Token-protected results</small></div>
+                <div><strong>Accurate</strong><small>Automated calculations</small></div>
+                <div><strong>Printable</strong><small>Professional A4 reports</small></div>
+            </div>
+        </section>
+
+        <section class="hero-card">
+            <img src="{{ url_for('static', filename='logo.jpg') }}" alt="School Logo">
+            <p>AKURE, ONDO STATE</p>
+            <div class="card-line"></div>
+            <h2>Academic Results Portal</h2>
+            <p>Access your current terminal result using your unique Student ID and school-issued token.</p>
+        </section>
+    </main>
+
+    <footer class="public-footer">
+        <span>© New Innovation Academy</span>
+        <span>Academic Management Portal</span>
+    </footer>
+</body>
+</html>
