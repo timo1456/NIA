@@ -24,6 +24,13 @@ app.secret_key = os.environ.get(
     "dev-only-secret-key-change-me"
 )
 
+app.config["SESSION_COOKIE_HTTPONLY"] = True
+app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
+app.config["SESSION_COOKIE_SECURE"] = os.environ.get(
+    "SESSION_COOKIE_SECURE",
+    "0"
+) == "1"
+
 
 basedir = os.path.abspath(
     os.path.dirname(__file__)
@@ -1475,4 +1482,4 @@ def logout():
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=os.environ.get("FLASK_DEBUG") == "1")
