@@ -236,3 +236,28 @@ button, input, select { font: inherit; }
     .hero-card { max-width: 520px; }
     .public-footer { gap: 10px; flex-direction: column; }
 }
+
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+    margin-top: 30px;
+}
+.dashboard-card {
+    min-height: 145px;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 14px;
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    background: var(--white);
+    box-shadow: 0 8px 24px rgba(83,0,0,.05);
+    text-decoration: none;
+}
+.dashboard-card strong { color: var(--wine); font-size: 1.05rem; }
+.dashboard-card span { color: var(--muted); line-height: 1.5; font-size: .92rem; }
+.dashboard-card-accent { border-top: 4px solid var(--yellow); }
+@media (max-width: 850px) { .dashboard-grid { grid-template-columns: repeat(2, minmax(0,1fr)); } }
+@media (max-width: 560px) { .dashboard-grid { grid-template-columns: 1fr; } }
