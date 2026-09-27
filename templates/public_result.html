@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ school_section }} Terminal Result</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='result_display.css') }}">
+</head>
+<body>
+<div class="result-container">
+    <div class="school-header">
+        <img src="{{ url_for('static', filename='logo.jpg') }}" alt="School Logo" class="school-logo">
+        <div class="school-name">
+            <h1>NEW INNOVATION ACADEMY</h1>
+            <p>.....Innovation for Global Excellence</p>
+            <p>AKURE ONDO STATE</p>
+        </div>
+    </div>
+
+    <div class="sch_sec_name">
+        <h2>{{ school_section }}, TERMINAL REPORT</h2>
+        <p>{{ active_period.term }} — {{ active_period.academic_session }} ACADEMIC SESSION</p>
+    </div>
+
+    <div class="student-info">
+        <div><p><strong>Student Name:</strong> {{ student.name }}</p><p><strong>Student ID:</strong> {{ student.id }}</p><p><strong>Gender:</strong> {{ student.gender }}</p></div>
+        <div><p><strong>Class:</strong> {{ student.class_name }}</p><p><strong>Position:</strong> {% if position %}{{ position }}{% if total_students %} of {{ total_students }}{% endif %}{% else %}—{% endif %}</p><p><strong>Next Term Begins:</strong> {% if active_period.next_term_begins %}{{ active_period.next_term_begins.strftime("%d/%m/%Y") }}{% else %}—{% endif %}</p></div>
+    </div>
+
+    <div class="tables-container">
+        <div class="result-table-container">
+            <table class="result-table">
+                <thead><tr><th>SUBJECTS</th><th>1ST TEST</th><th>2ND TEST</th><th>3RD TEST</th><th>TERM'S EXAM</th><th>SUMMARY OF TERM'S WORK</th><th>LAST TERM'S CUMMULATIVE</th><th>CUMMULATIVE AVERAGE</th><th>CLASS AVERAGE</th><th>GRADE</th><th>SUBJECT TEACHER'S REMARK</th></tr></thead>
+                <tbody>
+                {% for subject in subjects %}
+                    {% set score = scores.get(subject.id) %}
+                    {% set total = calculate_total(score) %}
+                    {% set cumulative = cumulative_results.get(subject.id) %}
+                    <tr>
+                        <td>{{ subject.name }}</td><td>{{ score.ca1 if score else 0 }}</td><td>{{ score.ca2 if score else 0 }}</td><td>{{ score.ca3 if score else 0 }}</td><td>{{ score.exam if score else 0 }}</td><td><strong>{{ total }}</strong></td>
+                        <td>{% if cumulative and cumulative.last_term_cumulative is not none %}{{ "%.2f"|format(cumulative.last_term_cumulative) }}{% else %}—{% endif %}</td>
+                        <td>{{ "%.2f"|format(cumulative.cumulative_average if cumulative else total) }}</td>
+                        <td>{{ "%.2f"|format(class_averages.get(subject.id, 0)) }}</td><td>{{ calculate_grade(total, student.class_name) }}</td><td>{{ calculate_remark(total) }}</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="trait-table-container">
+            <table class="trait-table">
+                <tbody>
+                <tr><th colspan="6">OBSERVABLE TRAITS' RATINGS</th></tr>
+                <tr><th>TRAITS</th><th>5</th><th>4</th><th>3</th><th>2</th><th>1</th></tr>
+                {% for trait in behavior_traits %}
+                    <tr><td>{{ trait }}</td>{% for value in [5,4,3,2,1] %}<td>{% if behavior_ratings.get(trait) == value %}✓{% endif %}</td>{% endfor %}</tr>
+                {% endfor %}
+                <tr><th colspan="6">KEY TO RATINGS</th></tr>
+                <tr><td><strong>5</strong></td><td colspan="5">Maintains an excellent degree of observable traits</td></tr>
+                <tr><td><strong>4</strong></td><td colspan="5">Maintains a high level of observable traits</td></tr>
+                <tr><td><strong>3</strong></td><td colspan="5">Maintains acceptable level of observable traits</td></tr>
+                <tr><td><strong>2</strong></td><td colspan="5">Shows minimal level of observable traits</td></tr>
+                <tr><td><strong>1</strong></td><td colspan="5">Has no regards for observable traits</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="result-summary-grid">
+        <div><strong>Overall Total</strong><span>{{ "%.2f"|format(overall_total) }}</span></div>
+        <div><strong>Overall Average</strong><span>{{ "%.2f"|format(overall_average) }}</span></div>
+        <div><strong>Class Position</strong><span>{% if position %}{{ position }}{% else %}—{% endif %}</span></div>
+    </div>
+
+    <div class="comments-grid">
+        <div><strong>Subject Teacher's / Class Teacher's Comment</strong><p>{{ teacher_comment }}</p></div>
+        <div><strong>Principal's Comment</strong><p>{{ principal_comment }}</p></div>
+        <div><strong>Guidance Counsellor's Remark</strong><p>{{ counsellor_comment }}</p></div>
+    </div>
+
+    <div class="public-actions">
+        <button class="print-button" onclick="window.print()">Print Result</button>
+        <a class="back-link" href="/check-result">Check Another Result</a>
+        <a class="back-link" href="/">Home</a>
+    </div>
+</div>
+</body>
+</html>
