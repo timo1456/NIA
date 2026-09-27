@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Check Result | New Innovation Academy</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='site.css') }}">
+</head>
+<body class="portal-page">
+    <main class="portal-shell">
+        <a class="mini-brand" href="/">
+            <img src="{{ url_for('static', filename='logo.jpg') }}" alt="School logo">
+            <span>NEW INNOVATION ACADEMY</span>
+        </a>
+
+        <section class="portal-card">
+            <span class="eyebrow">RESULT PORTAL</span>
+            <h1>Check your result</h1>
+            <p class="muted">
+                Enter the Student ID and token issued by the school.
+                Your token is private and should not be shared.
+            </p>
+
+            {% if active_period %}
+                <div class="period-badge">
+                    {{ active_period.term }} · {{ active_period.academic_session }}
+                </div>
+            {% endif %}
+
+            {% if error %}
+                <div class="alert alert-error">{{ error }}</div>
+            {% endif %}
+
+            <form method="POST" class="portal-form">
+                <label for="student_id">Student ID</label>
+                <input id="student_id" name="student_id" inputmode="numeric" autocomplete="off" required>
+
+                <label for="token">Result Token</label>
+                <input id="token" name="token" autocomplete="off" required>
+
+                <button class="btn btn-primary btn-full" type="submit">View Result</button>
+            </form>
+
+            <a class="back-link" href="/">← Back to school portal</a>
+        </section>
+    </main>
+</body>
+</html>
