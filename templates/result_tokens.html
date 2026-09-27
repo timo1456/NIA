@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Result Tokens | Admin</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='site.css') }}">
+</head>
+<body class="app-page">
+    <header class="app-header">
+        <div class="mini-brand">
+            <img src="{{ url_for('static', filename='logo.jpg') }}" alt="School logo">
+            <span>NEW INNOVATION ACADEMY</span>
+        </div>
+        <a class="nav-link" href="/dashboard">Dashboard</a>
+    </header>
+
+    <main class="app-shell">
+        <div class="page-heading">
+            <div>
+                <span class="eyebrow">ADMINISTRATION</span>
+                <h1>Result Access Tokens</h1>
+                {% if active_period %}
+                    <p class="muted">{{ active_period.term }} · {{ active_period.academic_session }}</p>
+                {% endif %}
+            </div>
+        </div>
+
+        {% if error %}<div class="alert alert-error">{{ error }}</div>{% endif %}
+
+        {% if new_token %}
+            <section class="token-reveal">
+                <span class="eyebrow">TOKEN GENERATED</span>
+                <h2>{{ generated_for.name }}</h2>
+                <p>Student ID: <strong>{{ generated_for.id }}</strong></p>
+                <div class="token-value">{{ new_token }}</div>
+                <p class="warning">Copy this token now and give it to the student. The system stores only a secure hash of the token.</p>
+            </section>
+        {% endif %}
+
+        <section class="table-card">
+            <div class="table-toolbar">
+                <input class="table-search" id="studentSearch" placeholder="Search students..." oninput="filterStudents()">
+                <span class="muted">{{ students|length }} students</span>
+            </div>
+            <div class="table-scroll">
+                <table class="data-table" id="studentTable">
+                    <thead><tr><th>Student ID</th><th>Student</th><th>Class</th><th>Action</th></tr></thead>
+                    <tbody>
+                    {% for student in students %}
+                        <tr>
+                            <td>{{ student.id }}</td>
+                            <td>{{ student.name }}</td>
+                            <td>{{ student.class_name }}</td>
+                            <td>
+                                <form method="POST">
+                                    <input type="hidden" name="student_id" value="{{ student.id }}">
+                                    <button class="btn btn-small btn-primary" type="submit">Generate Token</button>
+                                </form>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        function filterStudents() {
+            const query = document.getElementById("studentSearch").value.toLowerCase();
+            document.querySelectorAll("#studentTable tbody tr").forEach(row => {
+                row.style.display = row.innerText.toLowerCase().includes(query) ? "" : "none";
+            });
+        }
+    </script>
+</body>
+</html>
