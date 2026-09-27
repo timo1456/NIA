@@ -1,15 +1,31 @@
-<h2>Login</h2>
-<style>
-    body {
-        background-color: black;
-        color: beige;
-    }
-</style>
-<form method="POST">
-	<p>{{ invalid }} </p>
-    <input name="username" placeholder="Username" required>
-    <input name="password" type="password" required>
-    <button>Login</button>
-</form>
-
-<a href="/register">Student Register</a>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Staff Login | NIA</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='site.css') }}">
+</head>
+<body class="portal-page">
+<main class="portal-shell">
+    <a class="mini-brand" href="/">
+        <img src="{{ url_for('static', filename='logo.jpg') }}" alt="School logo">
+        <span>NEW INNOVATION ACADEMY</span>
+    </a>
+    <section class="portal-card">
+        <span class="eyebrow">STAFF PORTAL</span>
+        <h1>Sign in</h1>
+        <p class="muted">Administrators and teachers can sign in to manage academic records.</p>
+        {% if invalid %}<div class="alert alert-error">{{ invalid }}</div>{% endif %}
+        <form method="POST" class="portal-form">
+            <label for="username">Username</label>
+            <input id="username" name="username" autocomplete="username" required>
+            <label for="password">Password</label>
+            <input id="password" name="password" type="password" autocomplete="current-password" required>
+            <button class="btn btn-primary btn-full" type="submit">Sign in</button>
+        </form>
+        <a class="back-link" href="/check-result">Student result portal →</a>
+    </section>
+</main>
+</body>
+</html>
