@@ -262,10 +262,13 @@ def check_result():
             elif token_record.expires_at and token_record.expires_at < datetime.utcnow():
                 error = "This result token has expired. Please request a new token."
             else:
-                token_record.last_used_at = datetime.utcnow()
-                db.session.commit()
                 context = build_result_context(student, active_period)
-                return render_template("public_result.html", **context)
+                if not context["subjects"]:
+                    error = "Your result has not been published yet. Please contact the school."
+                else:
+                    token_record.last_used_at = datetime.utcnow()
+                    db.session.commit()
+                    return render_template("public_result.html", **context)
 
     return render_template(
         "check_result.html",
