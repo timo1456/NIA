@@ -67,15 +67,8 @@ class TeacherAssignment(db.Model):
 class AcademicPeriod(db.Model):
     id = db.Column(db.Integer, primary_key=True)
 
-    academic_session = db.Column(
-        db.String(20),
-        nullable=False
-    )
-
-    term = db.Column(
-        db.String(20),
-        nullable=False
-    )
+    academic_session = db.Column(db.String(20), nullable=False)
+    term = db.Column(db.String(20), nullable=False)
 
     is_active = db.Column(
         db.Boolean,
@@ -83,10 +76,7 @@ class AcademicPeriod(db.Model):
         nullable=False
     )
 
-    next_term_begins = db.Column(
-        db.Date,
-        nullable=True
-    )
+    next_term_begins = db.Column(db.Date, nullable=True)
 
     __table_args__ = (
         db.UniqueConstraint(
@@ -118,29 +108,10 @@ class Score(db.Model):
         nullable=False
     )
 
-    ca1 = db.Column(
-        db.Integer,
-        default=0,
-        nullable=False
-    )
-
-    ca2 = db.Column(
-        db.Integer,
-        default=0,
-        nullable=False
-    )
-
-    ca3 = db.Column(
-        db.Integer,
-        default=0,
-        nullable=False
-    )
-
-    exam = db.Column(
-        db.Integer,
-        default=0,
-        nullable=False
-    )
+    ca1 = db.Column(db.Integer, default=0, nullable=False)
+    ca2 = db.Column(db.Integer, default=0, nullable=False)
+    ca3 = db.Column(db.Integer, default=0, nullable=False)
+    exam = db.Column(db.Integer, default=0, nullable=False)
 
     __table_args__ = (
         db.UniqueConstraint(
@@ -163,7 +134,6 @@ class Score(db.Model):
     academic_period = db.relationship("AcademicPeriod")
 
 
-
 class BehavioralRating(db.Model):
     id = db.Column(db.Integer, primary_key=True)
 
@@ -179,15 +149,8 @@ class BehavioralRating(db.Model):
         nullable=False
     )
 
-    trait = db.Column(
-        db.String(100),
-        nullable=False
-    )
-
-    rating = db.Column(
-        db.Integer,
-        nullable=False
-    )
+    trait = db.Column(db.String(100), nullable=False)
+    rating = db.Column(db.Integer, nullable=False)
 
     __table_args__ = (
         db.UniqueConstraint(
@@ -199,4 +162,46 @@ class BehavioralRating(db.Model):
     )
 
     student = db.relationship("Student")
+    academic_period = db.relationship("AcademicPeriod")
+
+
+class ResultToken(db.Model):
+    """Hashed access tokens used by students to view published results."""
+
+    id = db.Column(db.Integer, primary_key=True)
+
+    student_id = db.Column(
+        db.Integer,
+        db.ForeignKey("student.id", ondelete="CASCADE"),
+        nullable=False
+    )
+
+    academic_period_id = db.Column(
+        db.Integer,
+        db.ForeignKey("academic_period.id", ondelete="CASCADE"),
+        nullable=False
+    )
+
+    token_hash = db.Column(db.String(64), unique=True, nullable=False)
+    token_prefix = db.Column(db.String(12), nullable=False)
+
+    created_at = db.Column(db.DateTime, nullable=False)
+    expires_at = db.Column(db.DateTime, nullable=True)
+
+    revoked = db.Column(
+        db.Boolean,
+        default=False,
+        nullable=False
+    )
+
+    last_used_at = db.Column(db.DateTime, nullable=True)
+
+    student = db.relationship(
+        "Student",
+        backref=db.backref(
+            "result_tokens",
+            cascade="all, delete-orphan"
+        )
+    )
+
     academic_period = db.relationship("AcademicPeriod")
