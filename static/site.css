@@ -289,3 +289,291 @@ button, input, select { font: inherit; }
 .app-page th { background: var(--yellow-soft); color: var(--wine); }
 .app-page th, .app-page td { padding: 10px 12px; border: 1px solid var(--line); }
 .app-page li { margin: 10px 0; }
+
+
+/* =========================================================
+   Legacy / Feature Page UI
+   Keeps older feature templates visually consistent with
+   the newer NIA design system without changing their logic.
+   ========================================================= */
+
+.app-page {
+    min-height: 100vh;
+    padding: 1px 0 70px;
+    background:
+        radial-gradient(circle at 90% 5%, rgba(228,181,29,.10), transparent 22%),
+        #f7f3f3;
+}
+
+.app-page > h1,
+.app-page > h2 {
+    width: min(1180px, 92vw);
+    margin: 42px auto 10px;
+    color: var(--wine);
+    letter-spacing: -.02em;
+}
+
+.app-page > h1 { font-size: clamp(2rem, 4vw, 3rem); }
+.app-page > h2 { font-size: clamp(1.6rem, 3vw, 2.2rem); }
+
+.app-page > h3,
+.app-page > p,
+.app-page > hr,
+.app-page > ul,
+.app-page > ol,
+.app-page > form,
+.app-page > table,
+.app-page > a {
+    width: min(1180px, 92vw);
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.app-page > p {
+    color: var(--muted);
+    line-height: 1.65;
+}
+
+.app-page > hr {
+    border: 0;
+    border-top: 1px solid var(--line);
+    margin-top: 24px;
+    margin-bottom: 24px;
+}
+
+.app-page > form {
+    padding: 26px;
+    margin-top: 20px;
+    background: var(--white);
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    box-shadow: var(--shadow);
+}
+
+.app-page > form label {
+    display: inline-block;
+    margin-bottom: 7px;
+    color: var(--wine);
+    font-weight: 800;
+}
+
+.app-page > form input:not([type="hidden"]),
+.app-page > form select,
+.app-page > form textarea {
+    width: min(100%, 520px);
+    min-height: 44px;
+    padding: 11px 13px;
+    border: 1px solid #d9cccc;
+    border-radius: 9px;
+    background: var(--white);
+    color: var(--ink);
+}
+
+.app-page > form input:focus,
+.app-page > form select:focus,
+.app-page > form textarea:focus {
+    outline: none;
+    border-color: var(--yellow);
+    box-shadow: 0 0 0 3px rgba(228,181,29,.15);
+}
+
+.app-page > form button,
+.app-page > button {
+    min-height: 42px;
+    padding: 10px 17px;
+    border: 0;
+    border-radius: 9px;
+    background: var(--wine);
+    color: var(--white);
+    font-weight: 800;
+    cursor: pointer;
+    transition: transform .15s ease, box-shadow .15s ease;
+}
+
+.app-page > form button:hover,
+.app-page > button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 7px 18px rgba(83,0,0,.16);
+}
+
+.app-page > a {
+    display: inline-block;
+    width: auto;
+    margin-top: 10px;
+    margin-left: max(4vw, calc((100% - 1180px) / 2));
+    color: var(--wine);
+    font-weight: 800;
+    text-decoration: none;
+}
+
+.app-page > a:hover { text-decoration: underline; }
+
+.app-page > ul,
+.app-page > ol {
+    padding: 20px 24px 20px 45px;
+    background: var(--white);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    box-shadow: 0 8px 24px rgba(83,0,0,.05);
+}
+
+.app-page > ul li,
+.app-page > ol li {
+    padding: 12px 4px;
+    border-bottom: 1px solid var(--line);
+}
+
+.app-page > ul li:last-child,
+.app-page > ol li:last-child {
+    border-bottom: 0;
+}
+
+.app-page > ul li a,
+.app-page > ol li a {
+    color: var(--wine);
+    font-weight: 850;
+    text-decoration: none;
+}
+
+.app-page > table {
+    overflow: hidden;
+    width: min(1180px, 92vw);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    box-shadow: var(--shadow);
+}
+
+.app-page > table th {
+    background: var(--yellow-soft);
+    color: var(--wine);
+    font-weight: 900;
+    text-align: left;
+}
+
+.app-page > table th,
+.app-page > table td {
+    padding: 13px 15px;
+    border: 1px solid var(--line);
+}
+
+.app-page .assignment {
+    margin: 18px 0;
+    padding: 20px;
+    border: 1px solid var(--line);
+    border-radius: 13px;
+    background: var(--surface);
+}
+
+.app-page .assignment hr {
+    border: 0;
+    border-top: 1px solid var(--line);
+    margin: 20px 0 0;
+}
+
+.app-page .assignment button {
+    background: #8a1e1e;
+}
+
+.app-page .assignment + button {
+    background: var(--yellow);
+    color: var(--wine-dark);
+}
+
+.app-page > form[method="GET"] {
+    box-shadow: 0 8px 24px rgba(83,0,0,.06);
+}
+
+.app-page .error,
+.app-page p[style*="color:red"] {
+    width: min(1180px, 92vw);
+    margin: 16px auto;
+    padding: 12px 15px;
+    border: 1px solid #efcaca;
+    border-radius: 9px;
+    background: #fff0f0;
+    color: #8a1e1e !important;
+    font-weight: 700;
+}
+
+.feature-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.feature-table th,
+.feature-table td {
+    padding: 12px 14px;
+    border: 1px solid var(--line);
+}
+
+.feature-table th {
+    background: var(--yellow-soft);
+    color: var(--wine);
+}
+
+.feature-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+    margin-top: 18px;
+}
+
+.feature-actions a,
+.feature-actions button {
+    width: auto !important;
+    margin: 0 !important;
+}
+
+.teacher-dashboard-grid {
+    width: min(1180px, 92vw);
+    margin: 30px auto 0;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+}
+
+.teacher-dashboard-card {
+    min-height: 145px;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 12px;
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    background: var(--white);
+    box-shadow: 0 8px 24px rgba(83,0,0,.05);
+    color: var(--ink);
+    text-decoration: none;
+}
+
+.teacher-dashboard-card strong {
+    color: var(--wine);
+    font-size: 1.05rem;
+}
+
+.teacher-dashboard-card span {
+    color: var(--muted);
+    line-height: 1.5;
+    font-size: .92rem;
+}
+
+.teacher-dashboard-card:hover,
+.dashboard-card:hover {
+    transform: translateY(-2px);
+    border-color: #dccaca;
+    box-shadow: var(--shadow);
+}
+
+@media (max-width: 850px) {
+    .teacher-dashboard-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 560px) {
+    .teacher-dashboard-grid {
+        grid-template-columns: 1fr;
+    }
+}
