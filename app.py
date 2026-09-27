@@ -10,7 +10,8 @@ from models.user import (
     TeacherAssignment,
     Score,
     AcademicPeriod,
-    BehavioralRating
+    BehavioralRating,
+    ResultToken
 )
 
 import os
@@ -36,6 +37,10 @@ app.config["SQLALCHEMY_DATABASE_URI"] = (
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 db.init_app(app)
+
+# Public landing page and student result access routes.
+from public_routes import public_bp
+app.register_blueprint(public_bp)
 
 
 CLASSES = [
@@ -297,7 +302,7 @@ def calculate_cumulative(student_id, subject_id, active_period):
 
 @app.route("/")
 def home():
-    return redirect("/login")
+    return render_template("landing.html")
 
 
 @app.route("/register", methods=["GET", "POST"])
@@ -406,7 +411,7 @@ def dashboard():
             user=session["user"]
         )
 
-    return "Student dashboard not implemented yet"
+    return redirect("/check-result")
 
 
 @app.route("/add-subject", methods=["GET", "POST"])
