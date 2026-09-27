@@ -282,22 +282,27 @@ def result_tokens():
         return "Unauthorized", 403
 
     active_period = _active_period()
+    students = Student.query.order_by(Student.class_name, Student.name).all()
+
     if not active_period:
         return render_template(
             "result_tokens.html",
             active_period=None,
-            students=[],
+            students=students,
+            active_tokens=[],
             new_token=None,
             error="Set an active academic period before generating result tokens.",
         )
 
     if request.method == "POST":
         student_id = request.form.get("student_id", "").strip()
+
         if not student_id.isdigit():
             return render_template(
                 "result_tokens.html",
                 active_period=active_period,
-                students=Student.query.order_by(Student.class_name, Student.name).all(),
+                students=students,
+                active_tokens=[],
                 new_token=None,
                 error="Invalid student.",
             )
@@ -324,20 +329,39 @@ def result_tokens():
         db.session.add(token)
         db.session.commit()
 
-        students = Student.query.order_by(Student.class_name, Student.name).all()
+        active_tokens = (
+            ResultToken.query.filter_by(
+                academic_period_id=active_period.id,
+                revoked=False
+            )
+            .order_by(ResultToken.created_at.desc())
+            .all()
+        )
+
         return render_template(
             "result_tokens.html",
             active_period=active_period,
             students=students,
+            active_tokens=active_tokens,
             new_token=raw_token,
             generated_for=student,
             error=None,
         )
 
+    active_tokens = (
+        ResultToken.query.filter_by(
+            academic_period_id=active_period.id,
+            revoked=False
+        )
+        .order_by(ResultToken.created_at.desc())
+        .all()
+    )
+
     return render_template(
         "result_tokens.html",
         active_period=active_period,
-        students=Student.query.order_by(Student.class_name, Student.name).all(),
+        students=students,
+        active_tokens=active_tokens,
         new_token=None,
         error=None,
     )
