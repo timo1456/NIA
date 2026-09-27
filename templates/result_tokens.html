@@ -64,6 +64,35 @@
                 </table>
             </div>
         </section>
+
+        <section class="table-card" style="margin-top:24px;">
+            <div class="table-toolbar">
+                <strong>Active Tokens</strong>
+                <span class="muted">{{ active_tokens|length }} active</span>
+            </div>
+            <div class="table-scroll">
+                <table class="data-table">
+                    <thead><tr><th>Student</th><th>ID</th><th>Token Prefix</th><th>Expires</th><th>Action</th></tr></thead>
+                    <tbody>
+                    {% for item in active_tokens %}
+                        <tr>
+                            <td>{{ item.student.name }}</td>
+                            <td>{{ item.student.id }}</td>
+                            <td><code>{{ item.token_prefix }}••••••</code></td>
+                            <td>{{ item.expires_at.strftime("%d/%m/%Y") if item.expires_at else "No expiry" }}</td>
+                            <td>
+                                <form method="POST" action="/admin/result-tokens/revoke/{{ item.id }}">
+                                    <button class="btn btn-small" type="submit" style="background:#7a2020;">Revoke</button>
+                                </form>
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr><td colspan="5">No active tokens for this academic period.</td></tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
     </main>
 
     <script>
