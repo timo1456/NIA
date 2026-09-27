@@ -39,7 +39,7 @@ app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 db.init_app(app)
 
 # Public landing page and student result access routes.
-from public_routes import public_bp
+from public_routes import public_bp, build_result_context
 app.register_blueprint(public_bp)
 
 
@@ -1372,98 +1372,9 @@ def result_display(student_id):
         if not allowed:
             return "Unauthorized", 403
 
-    score_list = Score.query.filter_by(
-        student_id=student.id,
-        academic_period_id=active_period.id
-    ).all()
-
-    scores = {
-        score.subject_id: score
-        for score in score_list
-    }
-
-    # Only show subjects for which this student has a score
-    # in the active academic period. This allows students in
-    # the same class to offer different subject combinations.
-    scored_subject_ids = set(scores.keys())
-
-    subjects = Subject.query.filter(
-        Subject.id.in_(scored_subject_ids)
-    ).order_by(Subject.name).all() if scored_subject_ids else []
-
-    cumulative_results = {
-        subject.id: calculate_cumulative(
-            student.id,
-            subject.id,
-            active_period
-        )
-        for subject in subjects
-    }
-
-    class_averages = {}
-
-    for subject in subjects:
-        subject_scores = Score.query.filter_by(
-            subject_id=subject.id,
-            academic_period_id=active_period.id
-        ).join(
-            Student
-        ).filter(
-            Student.class_name == student.class_name
-        ).all()
-
-        totals = [
-            calculate_total(score)
-            for score in subject_scores
-        ]
-
-        class_averages[subject.id] = (
-            sum(totals) / len(totals)
-            if totals
-            else 0
-        )
-
-    overall_total = sum(
-        calculate_total(score)
-        for score in scores.values()
-    )
-
-    subjects_with_scores = len(scores)
-
-    overall_average = (
-        overall_total / subjects_with_scores
-        if subjects_with_scores
-        else 0
-    )
-
-    behavior_ratings = BehavioralRating.query.filter_by(
-        student_id=student.id,
-        academic_period_id=active_period.id
-    ).all()
-
-    behavior_ratings = {
-        rating.trait: rating.rating
-        for rating in behavior_ratings
-    }
-
-    behavior_traits = BEHAVIOR_TRAITS
-
     return render_template(
         "result_display.html",
-        student=student,
-        subjects=subjects,
-        scores=scores,
-        cumulative_results=cumulative_results,
-        class_averages=class_averages,
-        active_period=active_period,
-        overall_total=overall_total,
-        overall_average=overall_average,
-        calculate_total=calculate_total,
-        calculate_grade=calculate_grade,
-        calculate_remark=calculate_remark,
-        school_section=get_school_section(student.class_name),
-        behavior_ratings=behavior_ratings,
-        behavior_traits=behavior_traits
+        **build_result_context(student, active_period)
     )
 
 
