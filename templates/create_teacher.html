@@ -97,7 +97,8 @@
         <!-- ASSIGNMENTS -->
         <!-- ========================= -->
 
-        <h3>Teaching Assignments</h3>
+        <h3>Teaching Assignments <span class="muted">(Optional)</span></h3>
+        <p class="muted">You may create the teacher account now and assign classes/subjects later.</p>
 
         <div id="assignments">
 
@@ -112,7 +113,6 @@
 
                 <select
                     name="assignment_class"
-                    required
                 >
 
                     <option value="">
@@ -139,7 +139,6 @@
 
                 <select
                     name="assignment_subject"
-                    required
                 >
 
                     <option value="">
@@ -286,15 +285,6 @@
                 document.querySelectorAll(
                     ".assignment"
                 );
-
-            if (assignments.length <= 1) {
-
-                alert(
-                    "At least one assignment is required."
-                );
-
-                return;
-            }
 
             button.parentElement.remove();
         }
