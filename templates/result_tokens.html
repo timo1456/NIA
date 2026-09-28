@@ -32,7 +32,7 @@
             <section class="token-reveal">
                 <span class="eyebrow">TOKEN GENERATED</span>
                 <h2>{{ generated_for.name }}</h2>
-                <p>Student ID: <strong>{{ generated_for.id }}</strong></p>
+                <p>Student ID: <strong>{{ generated_for.student_id }}</strong></p>
                 <div class="token-value">{{ new_token }}</div>
                 <p class="warning">Copy this token now and give it to the student. The system stores only a secure hash of the token.</p>
             </section>
@@ -49,7 +49,7 @@
                     <tbody>
                     {% for student in students %}
                         <tr>
-                            <td>{{ student.id }}</td>
+                            <td>{{ student.student_id }}</td>
                             <td>{{ student.name }}</td>
                             <td>{{ student.class_name }}</td>
                             <td>
@@ -77,7 +77,7 @@
                     {% for item in active_tokens %}
                         <tr>
                             <td>{{ item.student.name }}</td>
-                            <td>{{ item.student.id }}</td>
+                            <td>{{ item.student.student_id }}</td>
                             <td><code>{{ item.token_prefix }}••••••</code></td>
                             <td>{{ item.expires_at.strftime("%d/%m/%Y") if item.expires_at else "No expiry" }}</td>
                             <td>
