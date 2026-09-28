@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Signatures | NIA</title><link rel="stylesheet" href="{{ url_for('static', filename='site.css') }}"></head>
+<body class="app-page">
+<header class="feature-nav"><a class="mini-brand" href="/"><img src="{{ url_for('static', filename='logo.jpg') }}" alt="School logo"><span>NEW INNOVATION ACADEMY</span></a><a class="nav-link" href="/dashboard">← Back to Dashboard</a></header>
+<main class="app-shell">
+<div class="page-heading"><span class="eyebrow">RESULT SETTINGS</span><h1>Official Signatures</h1><p class="muted">Upload once and replace whenever a signature changes.</p></div>
+{% if error %}<div class="alert alert-error">{{ error }}</div>{% endif %}
+<div class="dashboard-grid">
+{% for key,label in roles.items() %}
+<section class="portal-card">
+<h2>{{ label }}</h2>
+{% set sig = signatures.get(key) %}
+{% if sig and sig.filename %}<img class="signature-preview" src="{{ url_for('static', filename='uploads/signatures/' ~ sig.filename) }}" alt="{{ label }} signature"><p class="muted">A signature is currently saved.</p>{% else %}<p class="muted">No signature uploaded yet.</p>{% endif %}
+<form method="POST" enctype="multipart/form-data">
+<input type="hidden" name="role" value="{{ key }}">
+<label>Upload / Replace Signature</label><input type="file" name="signature" accept=".png,.jpg,.jpeg,.webp" required>
+<button class="btn btn-primary" type="submit">Save Signature</button>
+</form>
+</section>
+{% endfor %}
+</div>
+</main></body></html>
