@@ -115,7 +115,7 @@ body {
 
 .tables-container {
     width: 194mm;
-    height: 90mm;
+    height: 96mm;
     display: flex;
     flex-direction: row;
     align-items: stretch;
@@ -124,24 +124,24 @@ body {
 
 .result-table-container {
     width: 138mm;
-    height: 82mm;
+    height: 96mm;
     overflow: hidden;
 }
 
 .trait-table-container {
     width: 53mm;
-    height: 82mm;
+    height: 96mm;
     overflow: hidden;
 }
 
 .result-table,
 .trait-table {
     width: 100%;
-    height: 82mm;
+    height: 96mm;
     border-collapse: collapse;
     table-layout: fixed;
     margin: 0;
-    font-size: 6px;
+    font-size: 5.5px;
 }
 
 .result-table th,
@@ -149,7 +149,7 @@ body {
 .trait-table th,
 .trait-table td {
     border: 1px solid var(--line);
-    padding: 1.5px 1px;
+    padding: 0.7px 1px;
     text-align: center;
     vertical-align: middle;
     overflow: hidden;
@@ -188,12 +188,29 @@ body {
     color: var(--white);
 }
 
+.trait-table .trait-name-column {
+    width: 28mm;
+}
+
+.trait-table .trait-rating-column {
+    width: 5mm;
+}
+
 .trait-table td:first-child {
     text-align: left;
+    white-space: nowrap;
+}
+
+.trait-table td:not(:first-child),
+.trait-table th:not(:first-child) {
+    width: 5mm;
+    padding-left: 0;
+    padding-right: 0;
+    white-space: nowrap;
 }
 
 .trait-table tr:nth-child(2) th:first-child {
-    width: 21mm;
+    width: 28mm;
 }
 
 .result-summary-grid {
