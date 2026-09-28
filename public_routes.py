@@ -249,10 +249,10 @@ def check_result():
         elif not active_period:
             error = "Results are not currently available. Please contact the school."
         else:
-            student = Student.query.filter_by(id=int(student_id)).first()
+            student = Student.query.filter_by(student_id=student_id).first()
             token_record = ResultToken.query.filter_by(
                 token_hash=_hash_token(token),
-                student_id=int(student_id),
+                student_id=student.id,
                 academic_period_id=active_period.id,
                 revoked=False,
             ).first()
