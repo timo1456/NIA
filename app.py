@@ -1834,12 +1834,31 @@ def result_sheet():
         if not teacher:
             return "Unauthorized", 403
 
-        assigned_classes = sorted({
+        subject_classes = {
             assignment.class_name
             for assignment in TeacherAssignment.query.filter_by(
                 teacher_id=teacher.id
             ).all()
-        })
+        }
+        class_teacher_classes = {
+            assignment.class_name
+            for assignment in ClassTeacherAssignment.query.filter_by(
+                teacher_id=teacher.id,
+                academic_session=active_period.academic_session
+            ).all()
+        }
+        assigned_classes = sorted(
+            subject_classes | class_teacher_classes
+        )
+
+        if not assigned_classes:
+            return render_template(
+                "result_sheet.html",
+                available_students=[],
+                available_classes=[],
+                selected_class="",
+                active_period=active_period
+            )
 
         students_query = students_query.filter(
             Student.class_name.in_(assigned_classes)
@@ -2002,12 +2021,18 @@ def result_display(student_id):
         return "Student not found", 404
 
     if session.get("role") == "teacher":
-        allowed = TeacherAssignment.query.filter_by(
+        subject_access = TeacherAssignment.query.filter_by(
             teacher_id=session.get("user_id"),
             class_name=student.class_name
         ).first()
 
-        if not allowed:
+        class_teacher_access = ClassTeacherAssignment.query.filter_by(
+            teacher_id=session.get("user_id"),
+            class_name=student.class_name,
+            academic_session=active_period.academic_session
+        ).first()
+
+        if not subject_access and not class_teacher_access:
             return "Unauthorized", 403
 
     return render_template(
