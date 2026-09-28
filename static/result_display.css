@@ -254,6 +254,9 @@ body {
     padding: 3mm;
     border: 1px solid var(--line);
     font-size: 7px;
+    position: relative;
+    display: flex;
+    flex-direction: column;
 }
 
 .comments-grid strong {
@@ -266,6 +269,15 @@ body {
 .comments-grid p {
     margin: 3mm 0 0;
     line-height: 1.45;
+}
+.comment-signature {
+    display: block;
+    max-width: 32mm;
+    max-height: 10mm;
+    object-fit: contain;
+    margin-top: auto;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 .public-actions {
