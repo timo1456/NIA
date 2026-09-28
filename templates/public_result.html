@@ -65,12 +65,6 @@
         </div>
     </div>
 
-    <div class="result-summary-grid">
-        <div><strong>Overall Total</strong><span>{{ "%.2f"|format(overall_total) }}</span></div>
-        <div><strong>Overall Average</strong><span>{{ "%.2f"|format(overall_average) }}</span></div>
-        <div><strong>Class Position</strong><span>{% if position %}{{ position }}{% else %}—{% endif %}</span></div>
-    </div>
-
     <div class="comments-grid">
         <div><strong>Subject Teacher's / Class Teacher's Comment</strong><p>{{ teacher_comment }}</p></div>
         <div><strong>Principal's Comment</strong><p>{{ principal_comment }}</p></div>

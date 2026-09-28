@@ -115,7 +115,7 @@ body {
 
 .tables-container {
     width: 194mm;
-    height: 82mm;
+    height: 90mm;
     display: flex;
     flex-direction: row;
     align-items: stretch;
@@ -165,7 +165,7 @@ body {
 }
 
 .result-table th {
-    writing-mode: vertical-rl;
+    writing-mode: sideways-lr;
     height: 29mm;
 }
 
