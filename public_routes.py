@@ -310,7 +310,7 @@ def result_tokens():
                 error="Invalid student.",
             )
 
-        student = Student.query.filter_by(id=int(student_id)).first()
+        student = Student.query.filter_by(student_id=student_id).first()
         if not student:
             return "Student not found", 404
 
