@@ -1,5 +1,6 @@
 from flask import Flask, render_template, request, redirect, session
 from werkzeug.security import generate_password_hash, check_password_hash
+from werkzeug.utils import secure_filename
 from sqlalchemy import inspect, text
 
 from extensions import db
@@ -11,7 +12,10 @@ from models.user import (
     Score,
     AcademicPeriod,
     BehavioralRating,
-    ResultToken
+    ResultToken,
+    ClassTeacherAssignment,
+    ResultComment,
+    SchoolSignature
 )
 
 import os
@@ -42,6 +46,15 @@ app.config["SQLALCHEMY_DATABASE_URI"] = (
 )
 
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+app.config["MAX_CONTENT_LENGTH"] = 4 * 1024 * 1024
+
+SIGNATURE_FOLDER = os.path.join(
+    basedir,
+    "static",
+    "uploads",
+    "signatures"
+)
+os.makedirs(SIGNATURE_FOLDER, exist_ok=True)
 
 db.init_app(app)
 
@@ -157,6 +170,31 @@ with app.app_context():
             )
         )
         db.session.commit()
+
+    # Add teacher portal/signature fields to existing databases.
+    inspector = inspect(db.engine)
+    user_columns = {
+        column["name"]
+        for column in inspector.get_columns("user")
+    }
+
+    if "portal_access" not in user_columns:
+        db.session.execute(
+            text(
+                "ALTER TABLE user "
+                "ADD COLUMN portal_access BOOLEAN NOT NULL DEFAULT 1"
+            )
+        )
+
+    if "signature_filename" not in user_columns:
+        db.session.execute(
+            text(
+                "ALTER TABLE user "
+                "ADD COLUMN signature_filename VARCHAR(255)"
+            )
+        )
+
+    db.session.commit()
 
     admin = User.query.filter_by(
         username="Admin"
@@ -346,6 +384,63 @@ def calculate_cumulative(student_id, subject_id, active_period):
     }
 
 
+def current_teacher():
+    if session.get("role") != "teacher":
+        return None
+    return User.query.filter_by(
+        id=session.get("user_id"),
+        role="teacher"
+    ).first()
+
+
+@app.before_request
+def enforce_teacher_portal_access():
+    if session.get("role") != "teacher":
+        return None
+
+    teacher = current_teacher()
+
+    if not teacher or not teacher.portal_access:
+        session.clear()
+        return redirect("/login?revoked=1")
+
+    return None
+
+
+def allowed_signature_file(filename):
+    if not filename or "." not in filename:
+        return False
+    return filename.rsplit(".", 1)[1].lower() in {
+        "png", "jpg", "jpeg", "webp"
+    }
+
+
+def save_signature(upload, prefix):
+    if not upload or not upload.filename:
+        return None
+
+    if not allowed_signature_file(upload.filename):
+        return None
+
+    extension = upload.filename.rsplit(".", 1)[1].lower()
+    filename = secure_filename(
+        f"{prefix}_{os.urandom(8).hex()}.{extension}"
+    )
+    upload.save(os.path.join(SIGNATURE_FOLDER, filename))
+    return filename
+
+
+def remove_signature_file(filename):
+    if not filename:
+        return
+    path = os.path.join(SIGNATURE_FOLDER, filename)
+    if os.path.isfile(path):
+        try:
+            os.remove(path)
+        except OSError:
+            pass
+
+
 @app.route("/")
 def home():
     return render_template("landing.html")
@@ -416,6 +511,12 @@ def login():
         user = User.query.filter_by(
             username=username
         ).first()
+
+        if user and user.role == "teacher" and not user.portal_access:
+            return render_template(
+                "login.html",
+                invalid="Your teacher portal access has been revoked. Contact the administrator."
+            )
 
         if user and check_password_hash(
             user.password,
@@ -805,17 +906,7 @@ def create_teacher():
             "assignment_subject"
         )
 
-        if not assignment_classes or not assignment_subjects:
-
-            return render_template(
-                "create_teacher.html",
-                subjects=subjects,
-                classes=CLASSES,
-                error="At least one teaching assignment is required."
-            )
-
         if len(assignment_classes) != len(assignment_subjects):
-
             return render_template(
                 "create_teacher.html",
                 subjects=subjects,
@@ -855,15 +946,6 @@ def create_teacher():
             seen_assignments.add(key)
             validated_assignments.append(
                 (class_name, subject.id)
-            )
-
-        if not validated_assignments:
-
-            return render_template(
-                "create_teacher.html",
-                subjects=subjects,
-                classes=CLASSES,
-                error="At least one valid teaching assignment is required."
             )
 
         teacher = User(
@@ -974,6 +1056,498 @@ def change_teacher_password(user_id):
     return render_template(
         "change_teacher_password.html",
         teacher=teacher
+    )
+
+
+@app.route("/edit-teacher-assignments/<int:user_id>", methods=["GET", "POST"])
+def edit_teacher_assignments(user_id):
+    if session.get("role") != "admin":
+        return "Unauthorized", 403
+
+    teacher = User.query.filter_by(
+        id=user_id,
+        role="teacher"
+    ).first_or_404()
+
+    subjects = Subject.query.order_by(Subject.name).all()
+
+    if request.method == "POST":
+        classes = request.form.getlist("assignment_class")
+        subject_ids = request.form.getlist("assignment_subject")
+
+        if len(classes) != len(subject_ids):
+            return render_template(
+                "edit_teacher_assignments.html",
+                teacher=teacher,
+                subjects=subjects,
+                classes=CLASSES,
+                assignments=teacher.assignments,
+                error="Invalid assignment data."
+            )
+
+        validated = []
+        seen = set()
+
+        for class_name, raw_subject_id in zip(classes, subject_ids):
+            if class_name not in CLASSES:
+                continue
+            try:
+                subject_id = int(raw_subject_id)
+            except (TypeError, ValueError):
+                continue
+
+            subject = db.session.get(Subject, subject_id)
+            if not subject:
+                continue
+
+            key = (class_name, subject.id)
+            if key not in seen:
+                seen.add(key)
+                validated.append(key)
+
+        TeacherAssignment.query.filter_by(
+            teacher_id=teacher.id
+        ).delete(synchronize_session=False)
+
+        for class_name, subject_id in validated:
+            db.session.add(
+                TeacherAssignment(
+                    teacher_id=teacher.id,
+                    subject_id=subject_id,
+                    class_name=class_name
+                )
+            )
+
+        db.session.commit()
+        return redirect(f"/teacher/{teacher.id}")
+
+    assignments = TeacherAssignment.query.filter_by(
+        teacher_id=teacher.id
+    ).join(Subject).order_by(
+        TeacherAssignment.class_name,
+        Subject.name
+    ).all()
+
+    return render_template(
+        "edit_teacher_assignments.html",
+        teacher=teacher,
+        subjects=subjects,
+        classes=CLASSES,
+        assignments=assignments
+    )
+
+
+@app.route("/toggle-teacher-access/<int:user_id>", methods=["POST"])
+def toggle_teacher_access(user_id):
+    if session.get("role") != "admin":
+        return "Unauthorized", 403
+
+    teacher = User.query.filter_by(
+        id=user_id,
+        role="teacher"
+    ).first_or_404()
+
+    teacher.portal_access = not teacher.portal_access
+    db.session.commit()
+
+    return redirect("/teachers")
+
+
+@app.route("/class-teachers", methods=["GET", "POST"])
+def class_teachers():
+    if session.get("role") != "admin":
+        return "Unauthorized", 403
+
+    active_period = get_active_period()
+    if not active_period:
+        return "No active academic period has been set.", 400
+
+    teachers_list = User.query.filter_by(
+        role="teacher"
+    ).order_by(User.name).all()
+
+    if request.method == "POST":
+        class_name = request.form.get("class_name", "").strip()
+        teacher_id = request.form.get("teacher_id", "").strip()
+
+        if class_name not in CLASSES or not teacher_id.isdigit():
+            return "Invalid class teacher assignment.", 400
+
+        teacher = User.query.filter_by(
+            id=int(teacher_id),
+            role="teacher"
+        ).first()
+
+        if not teacher:
+            return "Teacher not found.", 404
+
+        assignment = ClassTeacherAssignment.query.filter_by(
+            class_name=class_name,
+            academic_session=active_period.academic_session
+        ).first()
+
+        if assignment:
+            assignment.teacher_id = teacher.id
+        else:
+            db.session.add(
+                ClassTeacherAssignment(
+                    teacher_id=teacher.id,
+                    class_name=class_name,
+                    academic_session=active_period.academic_session
+                )
+            )
+
+        db.session.commit()
+        return redirect("/class-teachers")
+
+    assignments = ClassTeacherAssignment.query.filter_by(
+        academic_session=active_period.academic_session
+    ).join(User).order_by(
+        ClassTeacherAssignment.class_name
+    ).all()
+
+    assigned_by_class = {
+        assignment.class_name: assignment
+        for assignment in assignments
+    }
+
+    return render_template(
+        "class_teachers.html",
+        active_period=active_period,
+        classes=CLASSES,
+        teachers=teachers_list,
+        assignments=assigned_by_class
+    )
+
+
+@app.route("/remove-class-teacher/<int:assignment_id>", methods=["POST"])
+def remove_class_teacher(assignment_id):
+    if session.get("role") != "admin":
+        return "Unauthorized", 403
+
+    assignment = db.session.get(ClassTeacherAssignment, assignment_id)
+    if assignment:
+        db.session.delete(assignment)
+        db.session.commit()
+
+    return redirect("/class-teachers")
+
+
+@app.route("/signatures", methods=["GET", "POST"])
+def signatures():
+    if session.get("role") != "admin":
+        return "Unauthorized", 403
+
+    roles = {
+        "principal": "Principal",
+        "guidance_counselor": "Guidance Counsellor"
+    }
+
+    if request.method == "POST":
+        role = request.form.get("role", "").strip()
+
+        if role not in roles:
+            return "Invalid signature role.", 400
+
+        upload = request.files.get("signature")
+        if not upload or not upload.filename:
+            return render_template(
+                "signatures.html",
+                roles=roles,
+                signatures={
+                    item.role: item
+                    for item in SchoolSignature.query.all()
+                },
+                error="Please choose a signature image."
+            )
+
+        filename = save_signature(
+            upload,
+            role
+        )
+
+        if not filename:
+            return render_template(
+                "signatures.html",
+                roles=roles,
+                signatures={
+                    item.role: item
+                    for item in SchoolSignature.query.all()
+                },
+                error="Use a PNG, JPG, JPEG or WEBP image."
+            )
+
+        setting = SchoolSignature.query.filter_by(role=role).first()
+        if not setting:
+            setting = SchoolSignature(role=role)
+            db.session.add(setting)
+
+        remove_signature_file(setting.filename)
+        setting.filename = filename
+        db.session.commit()
+
+        return redirect("/signatures")
+
+    return render_template(
+        "signatures.html",
+        roles=roles,
+        signatures={
+            item.role: item
+            for item in SchoolSignature.query.all()
+        }
+    )
+
+
+@app.route("/class-teacher-comment", methods=["GET", "POST"])
+def class_teacher_comment():
+    if session.get("role") != "teacher":
+        return "Unauthorized", 403
+
+    teacher = current_teacher()
+    active_period = get_active_period()
+
+    if not teacher or not active_period:
+        return "Unauthorized", 403
+
+    class_assignments = ClassTeacherAssignment.query.filter_by(
+        teacher_id=teacher.id,
+        academic_session=active_period.academic_session
+    ).all()
+
+    assigned_classes = [item.class_name for item in class_assignments]
+    selected_class = request.values.get("class_name", "").strip()
+    selected_student_id = request.values.get("student_id", "").strip()
+
+    if selected_class not in assigned_classes:
+        selected_class = ""
+
+    students = []
+    student = None
+
+    if selected_class:
+        students = Student.query.filter_by(
+            class_name=selected_class
+        ).order_by(Student.name).all()
+
+    if selected_student_id.isdigit():
+        student = Student.query.filter_by(
+            id=int(selected_student_id),
+            class_name=selected_class
+        ).first()
+
+    comment = None
+    if student:
+        comment = ResultComment.query.filter_by(
+            student_id=student.id,
+            academic_period_id=active_period.id
+        ).first()
+
+    if request.method == "POST":
+        if not student:
+            return "Invalid student selection.", 400
+
+        if selected_class not in assigned_classes:
+            return "Unauthorized", 403
+
+        if not comment:
+            comment = ResultComment(
+                student_id=student.id,
+                academic_period_id=active_period.id,
+                class_teacher_id=teacher.id
+            )
+            db.session.add(comment)
+
+        comment.class_teacher_id = teacher.id
+        comment.class_teacher_remark = request.form.get(
+            "class_teacher_remark",
+            ""
+        ).strip()
+
+        upload = request.files.get("signature")
+        if upload and upload.filename:
+            filename = save_signature(upload, f"teacher_{teacher.id}")
+            if not filename:
+                return "Use a PNG, JPG, JPEG or WEBP signature image.", 400
+
+            remove_signature_file(teacher.signature_filename)
+            teacher.signature_filename = filename
+
+        db.session.commit()
+
+        return redirect(
+            f"/class-teacher-comment?class_name={selected_class}"
+            f"&student_id={student.id}"
+        )
+
+    return render_template(
+        "class_teacher_comment.html",
+        active_period=active_period,
+        classes=assigned_classes,
+        students=students,
+        selected_class=selected_class,
+        student=student,
+        comment=comment,
+        teacher=teacher
+    )
+
+
+@app.route("/result-comments", methods=["GET", "POST"])
+def result_comments():
+    if session.get("role") != "admin":
+        return "Unauthorized", 403
+
+    active_period = get_active_period()
+    if not active_period:
+        return "No active academic period has been set.", 400
+
+    selected_class = request.values.get("class_name", "").strip()
+    selected_student_id = request.values.get("student_id", "").strip()
+
+    if selected_class not in CLASSES:
+        selected_class = ""
+
+    students = []
+    student = None
+    comment = None
+
+    if selected_class:
+        students = Student.query.filter_by(
+            class_name=selected_class
+        ).order_by(Student.name).all()
+
+    if selected_student_id.isdigit():
+        student = Student.query.filter_by(
+            id=int(selected_student_id),
+            class_name=selected_class
+        ).first()
+
+    if student:
+        comment = ResultComment.query.filter_by(
+            student_id=student.id,
+            academic_period_id=active_period.id
+        ).first()
+
+    if request.method == "POST":
+        if not student:
+            return "Invalid student selection.", 400
+
+        if not comment:
+            comment = ResultComment(
+                student_id=student.id,
+                academic_period_id=active_period.id
+            )
+            db.session.add(comment)
+
+        comment.principal_remark = request.form.get(
+            "principal_remark",
+            ""
+        ).strip()
+        comment.counselor_remark = request.form.get(
+            "counselor_remark",
+            ""
+        ).strip()
+
+        db.session.commit()
+
+        return redirect(
+            f"/result-comments?class_name={selected_class}"
+            f"&student_id={student.id}"
+        )
+
+    return render_template(
+        "result_comments.html",
+        active_period=active_period,
+        classes=CLASSES,
+        students=students,
+        selected_class=selected_class,
+        student=student,
+        comment=comment
+    )
+
+
+@app.route("/broad-sheet", methods=["GET"])
+def broad_sheet():
+    if session.get("role") != "admin":
+        return "Unauthorized", 403
+
+    active_period = get_active_period()
+    if not active_period:
+        return "No active academic period has been set.", 400
+
+    selected_class = request.args.get("class_name", "").strip()
+    if selected_class not in CLASSES:
+        selected_class = ""
+
+    students = []
+    subjects = []
+    rows = []
+
+    if selected_class:
+        students = Student.query.filter_by(
+            class_name=selected_class
+        ).order_by(Student.name).all()
+
+        subject_ids = {
+            assignment.subject_id
+            for assignment in TeacherAssignment.query.filter_by(
+                class_name=selected_class
+            ).all()
+        }
+
+        session_periods = AcademicPeriod.query.filter_by(
+            academic_session=active_period.academic_session
+        ).all()
+
+        session_period_ids = [period.id for period in session_periods]
+
+        if session_period_ids:
+            subject_ids.update(
+                score.subject_id
+                for score in Score.query.join(Student).filter(
+                    Student.class_name == selected_class,
+                    Score.academic_period_id.in_(session_period_ids)
+                ).all()
+            )
+
+        if subject_ids:
+            subjects = Subject.query.filter(
+                Subject.id.in_(subject_ids)
+            ).order_by(Subject.name).all()
+
+        for student in students:
+            cumulative = {}
+
+            for subject in subjects:
+                result = calculate_cumulative(
+                    student.id,
+                    subject.id,
+                    active_period
+                )
+
+                has_any_score = Score.query.filter(
+                    Score.student_id == student.id,
+                    Score.subject_id == subject.id,
+                    Score.academic_period_id.in_(session_period_ids)
+                ).first()
+
+                cumulative[subject.id] = (
+                    result["cumulative_average"]
+                    if has_any_score
+                    else None
+                )
+
+            rows.append({
+                "student": student,
+                "cumulative": cumulative
+            })
+
+    return render_template(
+        "broad_sheet.html",
+        active_period=active_period,
+        classes=CLASSES,
+        selected_class=selected_class,
+        subjects=subjects,
+        rows=rows
     )
 
 
@@ -1229,91 +1803,6 @@ def save_scores():
     return redirect("/add-score")
 
 
-@app.route("/marks-sheet", methods=["GET", "POST"])
-def marks_sheet():
-
-    if session.get("role") not in ["admin", "teacher"]:
-        return "Unauthorized", 403
-
-    active_period = get_active_period()
-
-    if not active_period:
-        return (
-            "No active academic period has been set. "
-            "Ask the administrator to set one."
-        )
-
-    role = session.get("role")
-    assignments_query = TeacherAssignment.query.join(
-        Subject
-    ).order_by(
-        TeacherAssignment.class_name,
-        Subject.name
-    )
-
-    if role == "teacher":
-        assignments_query = assignments_query.filter_by(
-            teacher_id=session.get("user_id")
-        )
-
-    assignments = assignments_query.all()
-
-    assignment_id = request.values.get("assignment_id", "")
-    assignment = None
-    students = []
-    scores = {}
-
-    if assignment_id:
-        try:
-            assignment_id = int(assignment_id)
-        except ValueError:
-            assignment_id = None
-
-    if assignment_id:
-        assignment = db.session.get(
-            TeacherAssignment,
-            assignment_id
-        )
-
-        if not assignment:
-            return "Assignment not found", 404
-
-        if role == "teacher" and assignment.teacher_id != session.get("user_id"):
-            return "Unauthorized", 403
-
-        students = Student.query.filter_by(
-            class_name=assignment.class_name
-        ).order_by(
-            Student.name
-        ).all()
-
-        score_list = Score.query.filter_by(
-            subject_id=assignment.subject_id,
-            academic_period_id=active_period.id
-        ).join(
-            Student
-        ).filter(
-            Student.class_name == assignment.class_name
-        ).all()
-
-        scores = {
-            score.student_id: score
-            for score in score_list
-        }
-
-    return render_template(
-        "marks_sheet.html",
-        assignments=assignments,
-        assignment=assignment,
-        students=students,
-        scores=scores,
-        active_period=active_period,
-        calculate_total=calculate_total,
-        calculate_grade=calculate_grade,
-        calculate_remark=calculate_remark
-    )
-
-
 @app.route("/result-sheet", methods=["GET"])
 def result_sheet():
 
@@ -1385,34 +1874,20 @@ def behavior_rating():
     if session.get("role") != "teacher":
         return "Unauthorized", 403
 
-    teacher = User.query.filter_by(
-        id=session.get("user_id"),
-        role="teacher"
-    ).first()
-
-    if not teacher:
-        return "Unauthorized", 403
-
+    teacher = current_teacher()
     active_period = get_active_period()
 
-    if not active_period:
-        return (
-            "No active academic period has been set. "
-            "Ask the administrator to set one."
-        )
+    if not teacher or not active_period:
+        return "Unauthorized", 403
 
-    assignments = TeacherAssignment.query.filter_by(
-        teacher_id=teacher.id
-    ).join(
-        Subject
-    ).order_by(
-        TeacherAssignment.class_name,
-        Subject.name
+    class_assignments = ClassTeacherAssignment.query.filter_by(
+        teacher_id=teacher.id,
+        academic_session=active_period.academic_session
     ).all()
 
     assigned_classes = sorted({
         assignment.class_name
-        for assignment in assignments
+        for assignment in class_assignments
     })
 
     selected_class = request.values.get("class_name", "").strip()
@@ -1450,7 +1925,7 @@ def behavior_rating():
     traits = BEHAVIOR_TRAITS
 
     if request.method == "POST":
-        if not student:
+        if not student or selected_class not in assigned_classes:
             return "Invalid student selection", 400
 
         for trait in traits:
@@ -1471,10 +1946,7 @@ def behavior_rating():
                 continue
 
             if raw_rating not in {"1", "2", "3", "4", "5"}:
-                return (
-                    f"Invalid rating for {trait}.",
-                    400
-                )
+                return f"Invalid rating for {trait}.", 400
 
             rating_value = int(raw_rating)
 
