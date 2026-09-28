@@ -7,6 +7,14 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='site.css') }}">
 </head>
 <body class="app-page">
+    <header class="feature-nav">
+        <a class="mini-brand" href="/">
+            <img src="{{ url_for('static', filename='logo.jpg') }}" alt="School logo">
+            <span>NEW INNOVATION ACADEMY</span>
+        </a>
+        <a class="nav-link" href="/dashboard">← Back to Dashboard</a>
+    </header>
+
     <main class="app-shell">
         <div class="page-heading">
             <span class="eyebrow">RESULT MANAGEMENT</span>
@@ -15,19 +23,57 @@
         </div>
 
         <section class="portal-card" style="max-width:720px; margin-top:25px;">
-            <form method="GET" action="/result-sheet" onsubmit="this.action='/result/' + document.getElementById('student_id').value;">
-                <label for="student_id">Student</label>
-                <select name="student_id" id="student_id" required style="width:100%; padding:12px; margin-top:8px;">
-                    <option value="">Select Student</option>
-                    {% for item in available_students %}
-                        <option value="{{ item.id }}">{{ item.student_id }} — {{ item.name }} — {{ item.class_name }}</option>
+            <form method="GET" action="/result-sheet">
+                <label for="class_name">Class</label>
+                <select
+                    name="class_name"
+                    id="class_name"
+                    required
+                    style="width:100%; padding:12px; margin-top:8px;"
+                    onchange="this.form.submit()"
+                >
+                    <option value="">Select Class</option>
+                    {% for class_name in available_classes %}
+                        <option value="{{ class_name }}" {% if selected_class == class_name %}selected{% endif %}>
+                            {{ class_name }}
+                        </option>
                     {% endfor %}
                 </select>
-                <button class="btn btn-primary" type="submit" style="margin-top:18px;">View Result</button>
             </form>
+
+            {% if selected_class %}
+                <form
+                    method="GET"
+                    style="margin-top:20px;"
+                    onsubmit="event.preventDefault(); const studentId = document.getElementById('student_id').value; if (studentId) window.location.href = '/result/' + studentId;"
+                >
+                    <input type="hidden" name="class_name" value="{{ selected_class }}">
+
+                    <label for="student_id">Student</label>
+                    <select
+                        name="student_id"
+                        id="student_id"
+                        required
+                        style="width:100%; padding:12px; margin-top:8px;"
+                    >
+                        <option value="">Select Student</option>
+                        {% for item in available_students %}
+                            <option value="{{ item.id }}">
+                                {{ item.student_id }} — {{ item.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+
+                    <button class="btn btn-primary" type="submit" style="margin-top:18px;">
+                        View Result
+                    </button>
+                </form>
+            {% else %}
+                <p class="muted" style="margin-top:18px;">
+                    Select a class first to see the students in that class.
+                </p>
+            {% endif %}
         </section>
-        <br>
-        <a class="back-link" href="/dashboard">← Back to Dashboard</a>
     </main>
 </body>
 </html>
