@@ -7,6 +7,8 @@ class User(db.Model):
     password = db.Column(db.String(200), nullable=False)
     role = db.Column(db.String(20), nullable=False)
     name = db.Column(db.String(100))
+    portal_access = db.Column(db.Boolean, default=True, nullable=False)
+    signature_filename = db.Column(db.String(255), nullable=True)
 
 
 class Student(db.Model):
@@ -207,3 +209,70 @@ class ResultToken(db.Model):
     )
 
     academic_period = db.relationship("AcademicPeriod")
+
+
+class ClassTeacherAssignment(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+
+    teacher_id = db.Column(
+        db.Integer,
+        db.ForeignKey("user.id", ondelete="CASCADE"),
+        nullable=False
+    )
+
+    class_name = db.Column(db.String(50), nullable=False)
+    academic_session = db.Column(db.String(20), nullable=False)
+
+    __table_args__ = (
+        db.UniqueConstraint(
+            "class_name",
+            "academic_session",
+            name="uq_class_teacher_session"
+        ),
+    )
+
+    teacher = db.relationship("User")
+
+
+class ResultComment(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+
+    student_id = db.Column(
+        db.Integer,
+        db.ForeignKey("student.id", ondelete="CASCADE"),
+        nullable=False
+    )
+
+    academic_period_id = db.Column(
+        db.Integer,
+        db.ForeignKey("academic_period.id", ondelete="CASCADE"),
+        nullable=False
+    )
+
+    class_teacher_id = db.Column(
+        db.Integer,
+        db.ForeignKey("user.id", ondelete="SET NULL"),
+        nullable=True
+    )
+
+    class_teacher_remark = db.Column(db.Text, nullable=True)
+    principal_remark = db.Column(db.Text, nullable=True)
+    counselor_remark = db.Column(db.Text, nullable=True)
+
+    __table_args__ = (
+        db.UniqueConstraint(
+            "student_id",
+            "academic_period_id",
+            name="uq_result_comment_student_period"
+        ),
+    )
+
+    student = db.relationship("Student")
+    academic_period = db.relationship("AcademicPeriod")
+    class_teacher = db.relationship("User")
+
+
+class SchoolSignature(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    role = db.Column(db.String(50), unique=True, nullable=False)
+    filename = db.Column(db.String(255), nullable=True)
