@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Edit Teacher Assignments | NIA</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='site.css') }}">
+</head>
+<body class="app-page">
+<header class="feature-nav">
+<a class="mini-brand" href="/"><img src="{{ url_for('static', filename='logo.jpg') }}" alt="School logo"><span>NEW INNOVATION ACADEMY</span></a>
+<a class="nav-link" href="/dashboard">← Back to Dashboard</a>
+</header>
+<main class="app-shell">
+<div class="page-heading"><span class="eyebrow">STAFF MANAGEMENT</span><h1>Edit Teaching Assignments</h1><p class="muted">{{ teacher.name }} · {{ teacher.username }}</p></div>
+{% if error %}<div class="alert alert-error">{{ error }}</div>{% endif %}
+<form method="POST" class="portal-card" style="margin-top:25px;">
+<p class="muted">Assignments are optional. Saving replaces the teacher's current teaching assignments.</p>
+<div id="assignments">
+{% for assignment in assignments %}
+<div class="assignment">
+<label>Class</label>
+<select name="assignment_class">
+{% for class_name in classes %}<option value="{{ class_name }}" {% if assignment.class_name == class_name %}selected{% endif %}>{{ class_name }}</option>{% endfor %}
+</select>
+<label>Subject</label>
+<select name="assignment_subject">
+{% for subject in subjects %}<option value="{{ subject.id }}" {% if assignment.subject_id == subject.id %}selected{% endif %}>{{ subject.name }}</option>{% endfor %}
+</select>
+<button type="button" onclick="this.parentElement.remove()">Remove</button>
+</div>
+{% endfor %}
+</div>
+<button class="btn btn-secondary" type="button" onclick="addAssignment()">+ Add Assignment</button>
+<button class="btn btn-primary" type="submit">Save Assignments</button>
+</form>
+</main>
+<script>
+const classes = {{ classes|tojson }};
+const subjects = {{ subjects|tojson }};
+function addAssignment() {
+    const box = document.createElement("div");
+    box.className = "assignment";
+    box.innerHTML = '<label>Class</label><select name="assignment_class"><option value="">Select Class</option>' +
+        classes.map(c => '<option value="' + c + '">' + c + '</option>').join("") +
+        '</select><label>Subject</label><select name="assignment_subject"><option value="">Select Subject</option>' +
+        subjects.map(s => '<option value="' + s.id + '">' + s.name + '</option>').join("") +
+        '</select><button type="button" onclick="this.parentElement.remove()">Remove</button>';
+    document.getElementById("assignments").appendChild(box);
+}
+</script>
+</body>
+</html>
