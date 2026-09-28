@@ -1345,22 +1345,37 @@ def result_sheet():
         if not teacher:
             return "Unauthorized", 403
 
-        assigned_classes = [
+        assigned_classes = sorted({
             assignment.class_name
             for assignment in TeacherAssignment.query.filter_by(
                 teacher_id=teacher.id
             ).all()
-        ]
+        })
 
         students_query = students_query.filter(
             Student.class_name.in_(assigned_classes)
         )
 
-    available_students = students_query.all()
+    else:
+        assigned_classes = CLASSES
+
+    selected_class = request.args.get("class_name", "").strip()
+
+    if selected_class not in assigned_classes:
+        selected_class = ""
+
+    available_students = []
+
+    if selected_class:
+        available_students = students_query.filter(
+            Student.class_name == selected_class
+        ).all()
 
     return render_template(
         "result_sheet.html",
         available_students=available_students,
+        available_classes=assigned_classes,
+        selected_class=selected_class,
         active_period=active_period
     )
 
