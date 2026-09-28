@@ -15,6 +15,7 @@ class Student(db.Model):
     name = db.Column(db.String(100), nullable=False)
     class_name = db.Column(db.String(50), nullable=False)
     gender = db.Column(db.String(20), nullable=False)
+    date_of_birth = db.Column(db.Date, nullable=True)
 
 
 class Subject(db.Model):
