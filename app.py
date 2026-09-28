@@ -119,6 +119,29 @@ with app.app_context():
         )
         db.session.commit()
 
+    # Add the user-entered Student ID to existing SQLite databases.
+    inspector = inspect(db.engine)
+    student_columns = {
+        column["name"]
+        for column in inspector.get_columns("student")
+    }
+
+    if "student_id" not in student_columns:
+        db.session.execute(
+            text(
+                "ALTER TABLE student "
+                "ADD COLUMN student_id VARCHAR(50)"
+            )
+        )
+        db.session.execute(
+            text(
+                "UPDATE student "
+                "SET student_id = CAST(id AS TEXT) "
+                "WHERE student_id IS NULL OR student_id = ''"
+            )
+        )
+        db.session.commit()
+
     admin = User.query.filter_by(
         username="Admin"
     ).first()
@@ -528,6 +551,11 @@ def create_student():
             ""
         )
 
+        student_id = request.form.get(
+            "student_id",
+            ""
+        ).strip()
+
         if not name:
 
             return render_template(
@@ -535,6 +563,22 @@ def create_student():
                 classes=CLASSES,
                 gen_der=GENDER,
                 error="Student name cannot be empty."
+            )
+
+        if not student_id:
+            return render_template(
+                "create_student.html",
+                classes=CLASSES,
+                gen_der=GENDER,
+                error="Student ID cannot be empty."
+            )
+
+        if Student.query.filter_by(student_id=student_id).first():
+            return render_template(
+                "create_student.html",
+                classes=CLASSES,
+                gen_der=GENDER,
+                error="That Student ID is already in use."
             )
 
         if class_name not in CLASSES:
@@ -556,6 +600,7 @@ def create_student():
             )
 
         student = Student(
+            student_id=student_id,
             name=name,
             class_name=class_name,
             gender=gender
