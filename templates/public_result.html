@@ -22,7 +22,7 @@
     </div>
 
     <div class="student-info">
-        <div><p><strong>Student Name:</strong> {{ student.name }}</p><p><strong>Student ID:</strong> {{ student.id }}</p><p><strong>Gender:</strong> {{ student.gender }}</p></div>
+        <div><p><strong>Student Name:</strong> {{ student.name }}</p><p><strong>Student ID:</strong> {{ student.student_id }}</p><p><strong>Gender:</strong> {{ student.gender }}</p></div>
         <div><p><strong>Class:</strong> {{ student.class_name }}</p><p><strong>Position:</strong> {% if position %}{{ position }}{% if total_students %} of {{ total_students }}{% endif %}{% else %}—{% endif %}</p><p><strong>Next Term Begins:</strong> {% if active_period.next_term_begins %}{{ active_period.next_term_begins.strftime("%d/%m/%Y") }}{% else %}—{% endif %}</p></div>
     </div>
 
