@@ -1,85 +1,70 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-
     <meta charset="UTF-8">
-
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
-
-    <title>Students</title>
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Students | NIA</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='site.css') }}">
 </head>
-
 <body class="app-page">
+    <header class="feature-nav">
+        <a class="mini-brand" href="/">
+            <img src="{{ url_for('static', filename='logo.jpg') }}" alt="School logo">
+            <span>NEW INNOVATION ACADEMY</span>
+        </a>
+        <a class="nav-link" href="/dashboard">← Back to Dashboard</a>
+    </header>
 
-    <h2>Student List</h2>
+    <main class="app-shell">
+        <div class="page-heading">
+            <span class="eyebrow">STUDENT MANAGEMENT</span>
+            <h1>Student List</h1>
+        </div>
 
+        <div class="feature-actions">
+            <a class="btn btn-primary" href="/create-student">Add Student</a>
+        </div>
 
-    {% if students %}
-
-        <ul>
-
-            {% for student in students %}
-
-                <li>
-
-                    <a
-                        href="/student/{{ student.id }}"
-                    >
-
-                        {{ student.name }}
-
-                    </a>
-
-                    — {{ student.class_name }}
-                    — {{ student.gender }}
-
-                    {% if session.get("role") == "admin" %}
-
-                        <form
-                            action="/delete-student/{{ student.id }}"
-                            method="POST"
-                            style="display:inline;"
-                        >
-
-                            <button type="submit">
-                                Delete
-                            </button>
-
-                        </form>
-
-                    {% endif %}
-
-                </li>
-
-            {% endfor %}
-
-        </ul>
-
-    {% else %}
-
-        <p>
-            No students have been created.
-        </p>
-
-    {% endif %}
-
-
-    <br>
-
-
-    <a href="/dashboard">
-        Back to Dashboard
-    </a>
-    <br>
-    <a href="/create-student">
-        Add Students
-    </a>
+        {% if students %}
+        <section class="table-card">
+            <div class="table-scroll">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Student ID</th>
+                            <th>Name</th>
+                            <th>Class</th>
+                            <th>Gender</th>
+                            <th>Date of Birth</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for student in students %}
+                        <tr>
+                            <td>{{ student.student_id }}</td>
+                            <td><a href="/student/{{ student.id }}">{{ student.name }}</a></td>
+                            <td>{{ student.class_name }}</td>
+                            <td>{{ student.gender }}</td>
+                            <td>{{ student.date_of_birth.strftime("%d/%m/%Y") if student.date_of_birth else "—" }}</td>
+                            <td>
+                                {% if session.get("role") == "admin" %}
+                                <form action="/delete-student/{{ student.id }}" method="POST">
+                                    <button class="btn btn-small" type="submit" style="background:#7a2020;">Delete</button>
+                                </form>
+                                {% else %}
+                                <a class="btn btn-small btn-secondary" href="/student/{{ student.id }}">View</a>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+        {% else %}
+            <p class="muted">No students have been created.</p>
+        {% endif %}
+    </main>
 </body>
-
 </html>
