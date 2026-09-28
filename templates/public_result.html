@@ -66,9 +66,27 @@
     </div>
 
     <div class="comments-grid">
-        <div><strong>Subject Teacher's / Class Teacher's Comment</strong><p>{{ teacher_comment }}</p></div>
-        <div><strong>Principal's Comment</strong><p>{{ principal_comment }}</p></div>
-        <div><strong>Guidance Counsellor's Remark</strong><p>{{ counsellor_comment }}</p></div>
+        <div class="comment-box">
+            <strong>Class Teacher's Comment</strong>
+            <p>{{ teacher_comment }}</p>
+            {% if class_teacher_signature %}
+            <img class="comment-signature" src="{{ url_for('static', filename='uploads/signatures/' ~ class_teacher_signature) }}" alt="Class teacher signature">
+            {% endif %}
+        </div>
+        <div class="comment-box">
+            <strong>Principal's Comment</strong>
+            <p>{{ principal_comment }}</p>
+            {% if principal_signature %}
+            <img class="comment-signature" src="{{ url_for('static', filename='uploads/signatures/' ~ principal_signature) }}" alt="Principal signature">
+            {% endif %}
+        </div>
+        <div class="comment-box">
+            <strong>Guidance Counsellor's Remark</strong>
+            <p>{{ counsellor_comment }}</p>
+            {% if counselor_signature %}
+            <img class="comment-signature" src="{{ url_for('static', filename='uploads/signatures/' ~ counselor_signature) }}" alt="Guidance counsellor signature">
+            {% endif %}
+        </div>
     </div>
 
     <div class="public-actions">
