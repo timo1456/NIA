@@ -12,6 +12,8 @@ from models.user import (
     AcademicPeriod,
     BehavioralRating,
     ResultToken,
+    ResultComment,
+    SchoolSignature,
 )
 
 public_bp = Blueprint("public", __name__)
@@ -209,6 +211,23 @@ def build_result_context(student, active_period):
     ).all()
     behavior_ratings = {row.trait: row.rating for row in behavior_rows}
 
+    comment = ResultComment.query.filter_by(
+        student_id=student.id,
+        academic_period_id=active_period.id
+    ).first()
+
+    principal_signature = SchoolSignature.query.filter_by(
+        role="principal"
+    ).first()
+
+    counselor_signature = SchoolSignature.query.filter_by(
+        role="guidance_counselor"
+    ).first()
+
+    teacher_signature_filename = None
+    if comment and comment.class_teacher:
+        teacher_signature_filename = comment.class_teacher.signature_filename
+
     return {
         "student": student,
         "subjects": subjects,
@@ -226,10 +245,29 @@ def build_result_context(student, active_period):
         "behavior_traits": BEHAVIOR_TRAITS,
         "position": position,
         "total_students": total_students,
-        "principal_comment": _comment(overall_average),
-        "teacher_comment": _comment(overall_average),
+        "principal_comment": (
+            comment.principal_remark
+            if comment and comment.principal_remark
+            else _comment(overall_average)
+        ),
+        "teacher_comment": (
+            comment.class_teacher_remark
+            if comment and comment.class_teacher_remark
+            else _comment(overall_average)
+        ),
         "counsellor_comment": (
-            "Continue to develop good study habits, discipline and positive relationships."
+            comment.counselor_remark
+            if comment and comment.counselor_remark
+            else "Continue to develop good study habits, discipline and positive relationships."
+        ),
+        "class_teacher_signature": teacher_signature_filename,
+        "principal_signature": (
+            principal_signature.filename
+            if principal_signature else None
+        ),
+        "counselor_signature": (
+            counselor_signature.filename
+            if counselor_signature else None
         ),
     }
 
