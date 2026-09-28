@@ -33,6 +33,8 @@
                         <tr>
                             <th>Name</th>
                             <th>Username</th>
+                            <th>Portal Access</th>
+                            <th>Action</th>
                             <th>Action</th>
                         </tr>
                     </thead>
@@ -42,8 +44,22 @@
                             <td><a href="/teacher/{{ teacher.id }}">{{ teacher.name }}</a></td>
                             <td>{{ teacher.username }}</td>
                             <td>
-                                <form action="/delete-teacher/{{ teacher.id }}" method="POST">
-                                    <button class="btn btn-small" type="submit" style="background:#7a2020;">Delete</button>
+                                {% if teacher.portal_access %}
+                                    <span class="status-badge status-active">Active</span>
+                                {% else %}
+                                    <span class="status-badge status-revoked">Revoked</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a class="btn btn-small" href="/teacher/{{ teacher.id }}">Manage</a>
+                                <form action="/toggle-teacher-access/{{ teacher.id }}" method="POST" style="display:inline;">
+                                    <button class="btn btn-small" type="submit" style="background:{% if teacher.portal_access %}#8a1e1e{% else %}#246b3a{% endif %};">
+                                        {% if teacher.portal_access %}Revoke Access{% else %}Restore Access{% endif %}
+                                    </button>
+                                </form>
+                                <form action="/delete-teacher/{{ teacher.id }}" method="POST" style="display:inline;">
+
+                                                                    <button class="btn btn-small" type="submit" style="background:#7a2020;">Delete</button>
                                 </form>
                             </td>
                         </tr>
