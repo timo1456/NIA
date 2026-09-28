@@ -119,6 +119,22 @@ with app.app_context():
         )
         db.session.commit()
 
+    # Add the student date of birth column to existing SQLite databases.
+    inspector = inspect(db.engine)
+    student_columns = {
+        column["name"]
+        for column in inspector.get_columns("student")
+    }
+
+    if "date_of_birth" not in student_columns:
+        db.session.execute(
+            text(
+                "ALTER TABLE student "
+                "ADD COLUMN date_of_birth DATE"
+            )
+        )
+        db.session.commit()
+
     # Add the user-entered Student ID to existing SQLite databases.
     inspector = inspect(db.engine)
     student_columns = {
@@ -556,6 +572,11 @@ def create_student():
             ""
         ).strip()
 
+        date_of_birth = request.form.get(
+            "date_of_birth",
+            ""
+        ).strip()
+
         if not name:
 
             return render_template(
@@ -563,6 +584,25 @@ def create_student():
                 classes=CLASSES,
                 gen_der=GENDER,
                 error="Student name cannot be empty."
+            )
+
+        if not date_of_birth:
+            return render_template(
+                "create_student.html",
+                classes=CLASSES,
+                gen_der=GENDER,
+                error="Date of birth is required."
+            )
+
+        from datetime import date
+        try:
+            date_of_birth = date.fromisoformat(date_of_birth)
+        except ValueError:
+            return render_template(
+                "create_student.html",
+                classes=CLASSES,
+                gen_der=GENDER,
+                error="Please enter a valid date of birth."
             )
 
         if not student_id:
@@ -603,7 +643,8 @@ def create_student():
             student_id=student_id,
             name=name,
             class_name=class_name,
-            gender=gender
+            gender=gender,
+            date_of_birth=date_of_birth
         )
 
         db.session.add(student)
