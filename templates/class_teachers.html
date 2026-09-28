@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Class Teachers | NIA</title><link rel="stylesheet" href="{{ url_for('static', filename='site.css') }}"></head>
+<body class="app-page">
+<header class="feature-nav"><a class="mini-brand" href="/"><img src="{{ url_for('static', filename='logo.jpg') }}" alt="School logo"><span>NEW INNOVATION ACADEMY</span></a><a class="nav-link" href="/dashboard">← Back to Dashboard</a></header>
+<main class="app-shell">
+<div class="page-heading"><span class="eyebrow">CLASS MANAGEMENT</span><h1>Class Teacher Assignment</h1><p class="muted">{{ active_period.academic_session }} · {{ active_period.term }}</p></div>
+<form method="POST" class="portal-card" style="margin-top:25px;">
+<label>Class</label>
+<select name="class_name" required><option value="">Select Class</option>{% for class_name in classes %}<option value="{{ class_name }}">{{ class_name }}</option>{% endfor %}</select>
+<label>Class Teacher</label>
+<select name="teacher_id" required><option value="">Select Teacher</option>{% for teacher in teachers %}<option value="{{ teacher.id }}">{{ teacher.name }}{% if not teacher.portal_access %} (Portal revoked){% endif %}</option>{% endfor %}</select>
+<button class="btn btn-primary" type="submit">Save / Change Class Teacher</button>
+</form>
+<section class="table-card">
+<div class="table-scroll"><table class="data-table"><thead><tr><th>Class</th><th>Class Teacher</th><th>Action</th></tr></thead><tbody>
+{% for class_name in classes %}
+{% set assignment = assignments.get(class_name) %}
+<tr><td>{{ class_name }}</td><td>{% if assignment %}{{ assignment.teacher.name }}{% else %}<span class="muted">Not assigned</span>{% endif %}</td><td>{% if assignment %}<form action="/remove-class-teacher/{{ assignment.id }}" method="POST"><button class="btn btn-small" type="submit" style="background:#8a1e1e;">Remove</button></form>{% endif %}</td></tr>
+{% endfor %}
+</tbody></table></div>
+</section>
+</main>
+</body></html>
