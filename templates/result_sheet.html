@@ -20,7 +20,7 @@
                 <select name="student_id" id="student_id" required style="width:100%; padding:12px; margin-top:8px;">
                     <option value="">Select Student</option>
                     {% for item in available_students %}
-                        <option value="{{ item.id }}">{{ item.id }} — {{ item.name }} — {{ item.class_name }}</option>
+                        <option value="{{ item.id }}">{{ item.student_id }} — {{ item.name }} — {{ item.class_name }}</option>
                     {% endfor %}
                 </select>
                 <button class="btn btn-primary" type="submit" style="margin-top:18px;">View Result</button>
