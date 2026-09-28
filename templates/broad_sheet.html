@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Broad Sheet | NIA</title><link rel="stylesheet" href="{{ url_for('static', filename='site.css') }}"></head>
+<body class="app-page">
+<header class="feature-nav"><a class="mini-brand" href="/"><img src="{{ url_for('static', filename='logo.jpg') }}" alt="School logo"><span>NEW INNOVATION ACADEMY</span></a><a class="nav-link" href="/dashboard">← Back to Dashboard</a></header>
+<main class="app-shell">
+<div class="page-heading"><span class="eyebrow">ACADEMIC RECORDS</span><h1>Broad Sheet</h1><p class="muted">{{ active_period.academic_session }} · {{ active_period.term }} · cumulative subject performance</p></div>
+<form method="GET" class="portal-card" style="margin-top:25px;">
+<label>Select Class</label><select name="class_name" onchange="this.form.submit()" required><option value="">Select Class</option>{% for class_name in classes %}<option value="{{ class_name }}" {% if selected_class == class_name %}selected{% endif %}>{{ class_name }}</option>{% endfor %}</select>
+</form>
+{% if selected_class %}
+<section class="table-card" style="margin-top:25px;">
+<div class="table-scroll">
+<table class="data-table broad-sheet-table">
+<thead><tr><th>Student ID</th><th>Name</th><th>Class</th><th>Gender</th><th>Date of Birth</th>{% for subject in subjects %}<th>{{ subject.name }}</th>{% endfor %}</tr></thead>
+<tbody>
+{% for row in rows %}
+<tr><td>{{ row.student.student_id }}</td><td>{{ row.student.name }}</td><td>{{ row.student.class_name }}</td><td>{{ row.student.gender }}</td><td>{% if row.student.date_of_birth %}{{ row.student.date_of_birth.strftime("%d/%m/%Y") }}{% endif %}</td>
+{% for subject in subjects %}<td>{% if row.cumulative.get(subject.id) is not none %}{{ "%.2f"|format(row.cumulative.get(subject.id)) }}{% endif %}</td>{% endfor %}</tr>
+{% endfor %}
+</tbody>
+</table>
+</div>
+</section>
+{% endif %}
+</main></body></html>
