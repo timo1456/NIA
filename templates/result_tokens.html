@@ -78,7 +78,7 @@
                         <tr>
                             <td>{{ item.student.name }}</td>
                             <td>{{ item.student.student_id }}</td>
-                            <td><code>{{ item.token_prefix }}••••••</code></td>
+                            <td><code>{{ item.token_prefix }}</code></td>
                             <td>{{ item.expires_at.strftime("%d/%m/%Y") if item.expires_at else "No expiry" }}</td>
                             <td>
                                 <form method="POST" action="/admin/result-tokens/revoke/{{ item.id }}">
