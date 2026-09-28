@@ -512,16 +512,16 @@ def login():
             username=username
         ).first()
 
-        if user and user.role == "teacher" and not user.portal_access:
-            return render_template(
-                "login.html",
-                invalid="Your teacher portal access has been revoked. Contact the administrator."
-            )
-
         if user and check_password_hash(
             user.password,
             password
         ):
+
+            if user.role == "teacher" and not user.portal_access:
+                return render_template(
+                    "login.html",
+                    invalid="Your teacher portal access has been revoked. Contact the administrator."
+                )
 
             session.clear()
             session["user"] = user.username
