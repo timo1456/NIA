@@ -185,7 +185,7 @@ class ResultToken(db.Model):
     )
 
     token_hash = db.Column(db.String(64), unique=True, nullable=False)
-    token_prefix = db.Column(db.String(12), nullable=False)
+    token_prefix = db.Column(db.String(10), nullable=False)
 
     created_at = db.Column(db.DateTime, nullable=False)
     expires_at = db.Column(db.DateTime, nullable=True)
