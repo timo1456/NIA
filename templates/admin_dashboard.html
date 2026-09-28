@@ -14,22 +14,23 @@
     </a>
     <a class="nav-link" href="/logout">Logout</a>
 </header>
-
 <main class="app-shell">
     <div class="page-heading">
         <span class="eyebrow">ADMINISTRATION</span>
         <h1>School Management Dashboard</h1>
         <p class="muted">Welcome, {{ user }}. Manage academic records from one place.</p>
     </div>
-
     <div class="dashboard-grid">
         <a class="dashboard-card" href="/academic-period"><strong>Academic Period</strong><span>Manage sessions, terms and next-term dates.</span></a>
         <a class="dashboard-card" href="/students"><strong>Students</strong><span>View and manage student records.</span></a>
         <a class="dashboard-card" href="/create-student"><strong>Add Student</strong><span>Create a new student record.</span></a>
-        <a class="dashboard-card" href="/teachers"><strong>Teachers</strong><span>Manage teaching staff and assignments.</span></a>
-        <a class="dashboard-card" href="/create-teacher"><strong>Add Teacher</strong><span>Create staff accounts and assignments.</span></a>
+        <a class="dashboard-card" href="/teachers"><strong>Teachers</strong><span>Manage teaching staff, assignments and portal access.</span></a>
+        <a class="dashboard-card" href="/create-teacher"><strong>Add Teacher</strong><span>Create a staff account with or without an assignment.</span></a>
+        <a class="dashboard-card" href="/class-teachers"><strong>Class Teachers</strong><span>Assign and change class teachers for the active session.</span></a>
         <a class="dashboard-card" href="/subjects"><strong>Subjects</strong><span>Manage the school's subject catalogue.</span></a>
-        <a class="dashboard-card" href="/marks-sheet"><strong>Marks Sheets</strong><span>Review academic score sheets.</span></a>
+        <a class="dashboard-card" href="/broad-sheet"><strong>Broad Sheet</strong><span>Generate the class-wide cumulative academic sheet for the active term.</span></a>
+        <a class="dashboard-card" href="/result-comments"><strong>Result Comments</strong><span>Enter principal and guidance counsellor remarks.</span></a>
+        <a class="dashboard-card" href="/signatures"><strong>Signatures</strong><span>Upload or replace principal and guidance counsellor signatures.</span></a>
         <a class="dashboard-card" href="/result-sheet"><strong>Result Sheets</strong><span>Preview individual terminal reports.</span></a>
         <a class="dashboard-card dashboard-card-accent" href="/admin/result-tokens"><strong>Result Tokens</strong><span>Generate secure tokens for students to access results.</span></a>
     </div>
