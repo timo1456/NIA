@@ -1181,6 +1181,9 @@ def class_teachers():
         if not teacher:
             return "Teacher not found.", 404
 
+        if not teacher.portal_access:
+            return "Restore the teacher's portal access before assigning them as class teacher.", 400
+
         assignment = ClassTeacherAssignment.query.filter_by(
             class_name=class_name,
             academic_session=active_period.academic_session
