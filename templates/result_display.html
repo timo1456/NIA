@@ -24,7 +24,7 @@
     <div class="student-info">
         <div>
             <p><strong>Student Name:</strong> {{ student.name }}</p>
-            <p><strong>Student ID:</strong> {{ student.id }}</p>
+            <p><strong>Student ID:</strong> {{ student.student_id }}</p>
             <p><strong>Gender:</strong> {{ student.gender }}</p>
         </div>
         <div>
@@ -77,6 +77,14 @@
 
         <div class="trait-table-container">
             <table class="trait-table">
+                <colgroup>
+                    <col class="trait-name-column">
+                    <col class="trait-rating-column">
+                    <col class="trait-rating-column">
+                    <col class="trait-rating-column">
+                    <col class="trait-rating-column">
+                    <col class="trait-rating-column">
+                </colgroup>
                 <tbody>
                     <tr><th colspan="6">OBSERVABLE TRAITS' RATINGS</th></tr>
                     <tr><th>TRAITS</th><th>5</th><th>4</th><th>3</th><th>2</th><th>1</th></tr>
