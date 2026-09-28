@@ -244,7 +244,7 @@ def check_result():
         student_id = request.form.get("student_id", "").strip()
         token = request.form.get("token", "").strip()
 
-        if not student_id.isdigit() or not token:
+        if not student_id or not token:
             error = "Enter your Student ID and result token."
         elif not active_period:
             error = "Results are not currently available. Please contact the school."
@@ -252,7 +252,7 @@ def check_result():
             student = Student.query.filter_by(student_id=student_id).first()
             token_record = ResultToken.query.filter_by(
                 token_hash=_hash_token(token),
-                student_id=student.id,
+                student_id=student.id if student else -1,
                 academic_period_id=active_period.id,
                 revoked=False,
             ).first()
