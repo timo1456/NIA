@@ -1563,6 +1563,18 @@ def delete_teacher(user_id):
     ).first()
 
     if teacher:
+        ClassTeacherAssignment.query.filter_by(
+            teacher_id=teacher.id
+        ).delete(synchronize_session=False)
+
+        ResultComment.query.filter_by(
+            class_teacher_id=teacher.id
+        ).update(
+            {"class_teacher_id": None},
+            synchronize_session=False
+        )
+
+        remove_signature_file(teacher.signature_filename)
 
         db.session.delete(teacher)
         db.session.commit()
