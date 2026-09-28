@@ -16,6 +16,9 @@ from models.user import (
 
 public_bp = Blueprint("public", __name__)
 
+TOKEN_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ0123456789"
+TOKEN_LENGTH = 10
+
 BEHAVIOR_TRAITS = [
     "Punctuality",
     "Attendance In Class",
@@ -242,7 +245,7 @@ def check_result():
 
     if request.method == "POST":
         student_id = request.form.get("student_id", "").strip()
-        token = request.form.get("token", "").strip()
+        token = request.form.get("token", "").strip().upper()
 
         if not student_id or not token:
             error = "Enter your Student ID and result token."
@@ -320,12 +323,15 @@ def result_tokens():
             revoked=False,
         ).update({"revoked": True}, synchronize_session=False)
 
-        raw_token = secrets.token_urlsafe(24)
+        raw_token = "".join(
+            secrets.choice(TOKEN_ALPHABET)
+            for _ in range(TOKEN_LENGTH)
+        )
         token = ResultToken(
             student_id=student.id,
             academic_period_id=active_period.id,
             token_hash=_hash_token(raw_token),
-            token_prefix=raw_token[:10],
+            token_prefix=raw_token,
             created_at=datetime.utcnow(),
             expires_at=datetime.utcnow() + timedelta(days=90),
         )
