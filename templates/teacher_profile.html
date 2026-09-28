@@ -40,16 +40,21 @@
     </p>
 
 
-    <p>
-        <strong>ID:</strong>
-        {{ teacher.id }}
+    <p><strong>ID:</strong> {{ teacher.id }}</p>
+    <p><strong>Portal Access:</strong>
+        {% if teacher.portal_access %}<span class="status-badge status-active">Active</span>
+        {% else %}<span class="status-badge status-revoked">Revoked</span>{% endif %}
     </p>
 
-    <p>
-        <a href="/change-teacher-password/{{ teacher.id }}">
-            Change Teacher Password
-        </a>
-    </p>
+    <div class="feature-actions">
+        <a class="btn btn-secondary" href="/change-teacher-password/{{ teacher.id }}">Change Teacher Password</a>
+        <a class="btn btn-primary" href="/edit-teacher-assignments/{{ teacher.id }}">Edit Teaching Assignments</a>
+        <form action="/toggle-teacher-access/{{ teacher.id }}" method="POST">
+            <button class="btn btn-small" type="submit">
+                {% if teacher.portal_access %}Revoke Portal Access{% else %}Restore Portal Access{% endif %}
+            </button>
+        </form>
+    </div>
 
 
     <hr>
